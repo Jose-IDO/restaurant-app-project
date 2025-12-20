@@ -33,7 +33,6 @@ export default function RegisterScreen({ navigation, onRegister, onNavigateToLog
     state: "",
     zip: "",
   });
-  const [isSignup, setIsSignup] = useState(true);
 
   const handleSubmit = () => {
     if (onRegister) {
@@ -41,12 +40,6 @@ export default function RegisterScreen({ navigation, onRegister, onNavigateToLog
     }
   };
 
-  const handleTabSwitch = () => {
-    setIsSignup(!isSignup);
-    if (!isSignup && onNavigateToLogin) {
-      onNavigateToLogin();
-    }
-  };
 
   const updateField = (field: keyof RegisterData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -75,28 +68,36 @@ export default function RegisterScreen({ navigation, onRegister, onNavigateToLog
           padding: 4,
         }}>
           <Pressable
-            onPress={handleTabSwitch}
+            onPress={() => {
+              if (onNavigateToLogin) {
+                onNavigateToLogin();
+              } else if (navigation) {
+                navigation.navigate("Login");
+              }
+            }}
             style={{
               flex: 1,
-              backgroundColor: !isSignup ? NG.c.gold : "transparent",
+              backgroundColor: "transparent",
               paddingVertical: 10,
               borderRadius: 999,
               alignItems: "center",
             }}
           >
-            <Text style={{ color: !isSignup ? "#151515" : NG.c.text, fontWeight: "900" }}>Login</Text>
+            <Text style={{ color: NG.c.text, fontWeight: "900" }}>Login</Text>
           </Pressable>
           <Pressable
-            onPress={handleTabSwitch}
+            onPress={() => {
+              // Already on Sign Up, do nothing
+            }}
             style={{
               flex: 1,
-              backgroundColor: isSignup ? NG.c.gold : "transparent",
+              backgroundColor: NG.c.gold,
               paddingVertical: 10,
               borderRadius: 999,
               alignItems: "center",
             }}
           >
-            <Text style={{ color: isSignup ? "#151515" : NG.c.text, fontWeight: "900" }}>Sign Up</Text>
+            <Text style={{ color: "#151515", fontWeight: "900" }}>Sign Up</Text>
           </Pressable>
         </View>
 

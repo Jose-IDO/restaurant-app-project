@@ -12,18 +12,10 @@ interface LoginScreenProps {
 export default function LoginScreen({ navigation, onLogin, onNavigateToSignup }: LoginScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLogin, setIsLogin] = useState(true);
 
   const handleSubmit = () => {
     if (onLogin) {
       onLogin(email, password);
-    }
-  };
-
-  const handleTabSwitch = () => {
-    setIsLogin(!isLogin);
-    if (!isLogin && onNavigateToSignup) {
-      onNavigateToSignup();
     }
   };
 
@@ -50,28 +42,36 @@ export default function LoginScreen({ navigation, onLogin, onNavigateToSignup }:
           padding: 4,
         }}>
           <Pressable
-            onPress={handleTabSwitch}
+            onPress={() => {
+              // Already on Login, do nothing
+            }}
             style={{
               flex: 1,
-              backgroundColor: isLogin ? NG.c.gold : "transparent",
+              backgroundColor: NG.c.gold,
               paddingVertical: 10,
               borderRadius: 999,
               alignItems: "center",
             }}
           >
-            <Text style={{ color: isLogin ? "#151515" : NG.c.text, fontWeight: "900" }}>Login</Text>
+            <Text style={{ color: "#151515", fontWeight: "900" }}>Login</Text>
           </Pressable>
           <Pressable
-            onPress={handleTabSwitch}
+            onPress={() => {
+              if (onNavigateToSignup) {
+                onNavigateToSignup();
+              } else if (navigation) {
+                navigation.navigate("Register");
+              }
+            }}
             style={{
               flex: 1,
-              backgroundColor: !isLogin ? NG.c.gold : "transparent",
+              backgroundColor: "transparent",
               paddingVertical: 10,
               borderRadius: 999,
               alignItems: "center",
             }}
           >
-            <Text style={{ color: !isLogin ? "#151515" : NG.c.text, fontWeight: "900" }}>Sign Up</Text>
+            <Text style={{ color: NG.c.text, fontWeight: "900" }}>Sign Up</Text>
           </Pressable>
         </View>
 

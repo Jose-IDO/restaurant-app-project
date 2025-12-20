@@ -1,11 +1,10 @@
 // Food Types
 export type FoodCategory = 
-  | 'Dessert' 
-  | 'Beverages' 
-  | 'Alcohols' 
-  | 'Burgers' 
+  | 'Starters' 
   | 'Mains' 
-  | 'Starters';
+  | 'Desserts' 
+  | 'Drinks'
+  | 'Sides';
 
 // More types will be added as needed
 

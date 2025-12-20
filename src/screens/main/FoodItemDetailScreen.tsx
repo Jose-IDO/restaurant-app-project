@@ -1,21 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, Image, ScrollView, TextInput, Pressable } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Screen, Pill, Divider, PrimaryButton, NG } from "../../components/ui/noirGold.ui";
+import { FOOD_ITEMS } from "../../data/foodItems";
 
 interface FoodItemDetailScreenProps {
   route?: any;
   navigation?: any;
   itemId?: string;
-  foodItem?: {
-    id: string;
-    name: string;
-    description: string;
-    price: number;
-    image: string;
-    ingredients?: string[];
-    extras?: Array<{ id: string; name: string; price: number }>;
-  };
+  foodItem?: any;
   onAddToCart?: (data: CartData) => void;
 }
 
@@ -26,35 +19,49 @@ export interface CartData {
   specialInstructions?: string;
 }
 
-const DEFAULT_ITEM = {
-  id: "1",
-  name: "Chocolate Soufflé",
-  description: "Decadent dark chocolate soufflé with vanilla bean ice cream",
-  price: 24.00,
-  image: "https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?auto=format&fit=crop&w=1400&q=70",
-  ingredients: ["Dark Chocolate", "Eggs", "Sugar", "Vanilla Ice Cream", "Gold Leaf"],
-  extras: [
-    { id: "1", name: "Extra Ice Cream", price: 5.00 },
-    { id: "2", name: "Berry Compote", price: 6.00 },
-  ],
-};
-
 export default function FoodItemDetailScreen({
   route,
   navigation,
   itemId,
-  foodItem = DEFAULT_ITEM,
+  foodItem,
   onAddToCart,
 }: FoodItemDetailScreenProps) {
   const [quantity, setQuantity] = useState(1);
   const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
   const [specialInstructions, setSpecialInstructions] = useState("");
 
-  const item = foodItem || DEFAULT_ITEM;
+  // Get item from route params or find by ID
+  const routeParams = route?.params || {};
+  const routeItem = routeParams.foodItem;
+  const routeItemId = routeParams.itemId || itemId;
+  
+  // Priority: route foodItem > prop foodItem > find by ID
+  let item = routeItem || foodItem;
+  
+  if (!item && routeItemId) {
+    item = FOOD_ITEMS.find(foodItem => foodItem.id === routeItemId) || null;
+  }
+
+  useEffect(() => {
+    // Reset state when item changes
+    setQuantity(1);
+    setSelectedExtras([]);
+    setSpecialInstructions("");
+  }, [item?.id]);
+
+  if (!item) {
+    return (
+      <Screen>
+        <View style={{ padding: 20 }}>
+          <Text style={{ color: NG.c.text }}>Item not found</Text>
+        </View>
+      </Screen>
+    );
+  }
 
   const calculateTotal = () => {
-    let total = item.price;
-    item.extras?.forEach(extra => {
+    let total = item.price || 0;
+    item.extras?.forEach((extra: any) => {
       if (selectedExtras.includes(extra.id)) {
         total += extra.price;
       }
@@ -65,7 +72,7 @@ export default function FoodItemDetailScreen({
   const handleAddToCart = () => {
     if (onAddToCart) {
       onAddToCart({
-        itemId: item.id,
+        itemId: item?.id || "",
         quantity,
         selectedExtras,
         specialInstructions,
@@ -94,18 +101,18 @@ export default function FoodItemDetailScreen({
 
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
         <Image
-          source={{ uri: item.image }}
+          source={{ uri: item?.img || item?.image || "" }}
           style={{ width: "100%", height: 230 }}
         />
 
         <View style={{ paddingHorizontal: 18, paddingTop: 16 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <Text style={{ color: NG.c.text, fontSize: 28, fontWeight: "900" }}>{item.name}</Text>
-            <Text style={{ color: NG.c.gold, fontSize: 18, fontWeight: "900" }}>R{item.price.toFixed(2)}</Text>
+            <Text style={{ color: NG.c.text, fontSize: 28, fontWeight: "900" }}>{item?.title || item?.name || "Item"}</Text>
+            <Text style={{ color: NG.c.gold, fontSize: 18, fontWeight: "900" }}>R{item?.price?.toFixed(2) || "0.00"}</Text>
           </View>
 
           <Text style={{ color: NG.c.muted, marginTop: 8, lineHeight: 18 }}>
-            {item.description}
+            {item?.description || item?.sub || ""}
           </Text>
 
           {item.ingredients && item.ingredients.length > 0 && (

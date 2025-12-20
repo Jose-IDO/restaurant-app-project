@@ -106,13 +106,14 @@ const AppNavigator = () => {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={isAuthenticated ? "Main" : "Login"}>
         {!isAuthenticated ? (
           <>
-            <Stack.Screen name="Auth" component={AuthNavigator} />
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
             <Stack.Screen name="Main" component={MainNavigator} />
+            <Stack.Screen name="Auth" component={AuthNavigator} />
             <Stack.Screen name="FoodItemDetail" component={FoodItemDetailScreen} />
-            <Stack.Screen name="Cart" component={CartEmptyScreen} />
             <Stack.Screen name="Checkout" component={CheckoutScreen} />
             <Stack.Screen name="OrderPlaced" component={OrderPlacedModalScreen} />
           </>
@@ -120,9 +121,7 @@ const AppNavigator = () => {
           <>
             <Stack.Screen name="Main" component={MainNavigator} />
             <Stack.Screen name="FoodItemDetail" component={FoodItemDetailScreen} />
-            <Stack.Screen name="Cart" component={CartWithItemsScreen} />
             <Stack.Screen name="Checkout" component={CheckoutScreen} />
-            <Stack.Screen name="Profile" component={ProfileLoggedInScreen} />
             <Stack.Screen name="OrderPlaced" component={OrderPlacedModalScreen} />
           </>
         )}
