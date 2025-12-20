@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "restaurant-app",
-    "slug": "restaurant-app",
+    "name": "Bon Appetit",
+    "slug": "bon-appetit",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

@@ -41,7 +41,7 @@ export function TitleLogo({
 }) {
   return (
     <View style={{ alignItems: "center", marginTop: 6 }}>
-      <Text style={{ color: NG.c.gold, fontSize: 34, fontWeight: "900" }}>Noir & Gold</Text>
+      <Text style={{ color: NG.c.gold, fontSize: 34, fontWeight: "900" }}>Bon Appetit</Text>
       <Text style={{ color: NG.c.muted, marginTop: 6 }}>{subtitle}</Text>
     </View>
   );

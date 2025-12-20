@@ -115,6 +115,19 @@ export default function LoginScreen({ navigation, onLogin, onNavigateToSignup }:
           <Text style={{ color: NG.c.text, fontWeight: "900" }}>G</Text>
           <Text style={{ color: NG.c.text, fontWeight: "800" }}>Continue with Google</Text>
         </Pressable>
+
+        <Pressable
+          onPress={() => navigation?.navigate("AdminLogin")}
+          style={{
+            marginTop: 16,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Text style={{ color: NG.c.muted2, fontWeight: "700", fontSize: 13 }}>
+            Admin Login
+          </Text>
+        </Pressable>
       </ScrollView>
     </Screen>
   );
