@@ -41,6 +41,20 @@ export default function ProfileScreen({ navigation, isLoggedIn = false, onLoginP
               }}
             />
           </View>
+          <View style={{ width: "70%", marginTop: 12 }}>
+            <Pressable
+              onPress={() => navigation?.navigate("AdminLogin")}
+              style={{
+                paddingVertical: 12,
+                borderRadius: 999,
+                borderWidth: 1,
+                borderColor: NG.c.stroke,
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: NG.c.text, fontWeight: "800" }}>Admin Login</Text>
+            </Pressable>
+          </View>
         </View>
       </Screen>
     );

@@ -19,6 +19,13 @@ import ProfileScreen from '../screens/main/ProfileScreen';
 import ProfileLoggedInScreen from '../screens/main/ProfileLoggedInScreen';
 import OrderPlacedModalScreen from '../screens/main/OrderPlacedModalScreen';
 
+// Admin Screens
+import AdminLoginScreen from '../screens/admin/AdminLoginScreen';
+import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
+import AdminFoodManagementScreen from '../screens/admin/AdminFoodManagementScreen';
+import AdminOrdersScreen from '../screens/admin/AdminOrdersScreen';
+import AdminAnalyticsScreen from '../screens/admin/AdminAnalyticsScreen';
+
 export type RootStackParamList = {
   Auth: undefined;
   Main: undefined;
@@ -29,6 +36,8 @@ export type RootStackParamList = {
   Checkout: undefined;
   Profile: undefined;
   OrderPlaced: undefined;
+  AdminLogin: undefined;
+  AdminMain: undefined;
 };
 
 export type AuthStackParamList = {
@@ -42,9 +51,17 @@ export type MainTabParamList = {
   Profile: undefined;
 };
 
+export type AdminTabParamList = {
+  AdminDashboard: undefined;
+  AdminFood: undefined;
+  AdminOrders: undefined;
+  AdminAnalytics: undefined;
+};
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const MainTab = createBottomTabNavigator<MainTabParamList>();
+const AdminTab = createBottomTabNavigator<AdminTabParamList>();
 
 const AuthNavigator = () => (
   <AuthStack.Navigator screenOptions={{ headerShown: false }}>
@@ -100,9 +117,65 @@ const MainNavigator = () => (
   </MainTab.Navigator>
 );
 
+const AdminNavigator = () => (
+  <AdminTab.Navigator
+    screenOptions={{
+      headerShown: false,
+      tabBarStyle: {
+        backgroundColor: '#0B0C0E',
+        borderTopWidth: 1,
+        borderTopColor: NG.c.stroke,
+        paddingTop: 10,
+        paddingBottom: 18,
+        height: 70,
+      },
+      tabBarActiveTintColor: NG.c.gold,
+      tabBarInactiveTintColor: 'rgba(237,237,237,0.55)',
+      tabBarLabelStyle: {
+        fontWeight: '800',
+        fontSize: 12,
+      },
+    }}
+  >
+    <AdminTab.Screen
+      name="AdminDashboard"
+      component={AdminDashboardScreen}
+      options={{
+        tabBarLabel: 'Dashboard',
+        tabBarIcon: ({ color }) => <Feather name="home" size={18} color={color} />,
+      }}
+    />
+    <AdminTab.Screen
+      name="AdminFood"
+      component={AdminFoodManagementScreen}
+      options={{
+        tabBarLabel: 'Food',
+        tabBarIcon: ({ color }) => <Feather name="coffee" size={18} color={color} />,
+      }}
+    />
+    <AdminTab.Screen
+      name="AdminOrders"
+      component={AdminOrdersScreen}
+      options={{
+        tabBarLabel: 'Orders',
+        tabBarIcon: ({ color }) => <Feather name="shopping-bag" size={18} color={color} />,
+      }}
+    />
+    <AdminTab.Screen
+      name="AdminAnalytics"
+      component={AdminAnalyticsScreen}
+      options={{
+        tabBarLabel: 'Analytics',
+        tabBarIcon: ({ color }) => <Feather name="bar-chart-2" size={18} color={color} />,
+      }}
+    />
+  </AdminTab.Navigator>
+);
+
 const AppNavigator = () => {
   // For now, default to not authenticated - will be connected to Redux later
   const isAuthenticated = false;
+  const isAdmin = false; // Will be connected to Redux later
 
   return (
     <NavigationContainer>
@@ -111,11 +184,18 @@ const AppNavigator = () => {
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Register" component={RegisterScreen} />
+            <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
             <Stack.Screen name="Main" component={MainNavigator} />
+            <Stack.Screen name="AdminMain" component={AdminNavigator} />
             <Stack.Screen name="Auth" component={AuthNavigator} />
             <Stack.Screen name="FoodItemDetail" component={FoodItemDetailScreen} />
             <Stack.Screen name="Checkout" component={CheckoutScreen} />
             <Stack.Screen name="OrderPlaced" component={OrderPlacedModalScreen} />
+          </>
+        ) : isAdmin ? (
+          <>
+            <Stack.Screen name="AdminMain" component={AdminNavigator} />
+            <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
           </>
         ) : (
           <>
