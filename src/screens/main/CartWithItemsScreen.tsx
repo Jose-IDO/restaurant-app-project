@@ -2,58 +2,32 @@ import React from "react";
 import { View, Text, Image, Pressable } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Screen, PrimaryButton, NG } from "../../components/ui/noirGold.ui";
-
-interface CartItem {
-  id: string;
-  title: string;
-  subtitle: string;
-  price: string;
-  img: string;
-  qty: string;
-}
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { removeFromCart, updateQuantity, clearCart, CartItem } from "../../store/slices/cartSlice";
 
 interface CartWithItemsScreenProps {
   navigation?: any;
-  items?: CartItem[];
-  subtotal?: string;
-  deliveryFee?: string;
-  total?: string;
-  onClearCart?: () => void;
-  onRemoveItem?: (id: string) => void;
-  onUpdateQuantity?: (id: string, qty: number) => void;
   onCheckout?: () => void;
 }
 
-const DEFAULT_ITEMS: CartItem[] = [
-  {
-    id: "1",
-    title: "Chocolate Soufflé",
-    subtitle: "Add-ons: Extra Ice Cream",
-    price: "R58.00",
-    img: "https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?auto=format&fit=crop&w=1200&q=70",
-    qty: "2",
-  },
-  {
-    id: "2",
-    title: "Wagyu Beef Steak",
-    subtitle: "Add-ons: Foie Gras Topping, Truffle Sauce",
-    price: "R318.00",
-    img: "https://images.unsplash.com/photo-1604908176997-125f25cc500f?auto=format&fit=crop&w=1200&q=70",
-    qty: "2",
-  },
-];
-
 export default function CartWithItemsScreen({
   navigation,
-  items = DEFAULT_ITEMS,
-  subtotal = "R376.00",
-  deliveryFee = "R5.00",
-  total = "R381.00",
-  onClearCart,
-  onRemoveItem,
-  onUpdateQuantity,
   onCheckout,
 }: CartWithItemsScreenProps) {
+  const dispatch = useAppDispatch();
+  const { items, subtotal, deliveryFee, total } = useAppSelector(state => state.cart);
+
+  const handleClearCart = () => {
+    dispatch(clearCart());
+  };
+
+  const handleRemoveItem = (id: string) => {
+    dispatch(removeFromCart(id));
+  };
+
+  const handleUpdateQuantity = (id: string, qty: number) => {
+    dispatch(updateQuantity({ id, quantity: qty }));
+  };
   return (
     <Screen>
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
@@ -63,7 +37,7 @@ export default function CartWithItemsScreen({
             <Text style={{ color: NG.c.gold, fontWeight: "900", fontSize: 18 }}>Your Cart</Text>
           </View>
         </Pressable>
-        <Pressable onPress={onClearCart}>
+        <Pressable onPress={handleClearCart}>
           <Text style={{ color: NG.c.gold, fontWeight: "800" }}>Clear</Text>
         </Pressable>
       </View>
@@ -74,8 +48,8 @@ export default function CartWithItemsScreen({
         <React.Fragment key={item.id}>
           <CartRow
             item={item}
-            onRemove={() => onRemoveItem?.(item.id)}
-            onUpdateQuantity={(qty) => onUpdateQuantity?.(item.id, qty)}
+            onRemove={() => handleRemoveItem(item.id)}
+            onUpdateQuantity={(qty) => handleUpdateQuantity(item.id, qty)}
           />
           {index < items.length - 1 && <View style={{ height: 12 }} />}
         </React.Fragment>
@@ -84,14 +58,14 @@ export default function CartWithItemsScreen({
       <View style={{ flex: 1 }} />
 
       <View style={{ paddingTop: 12, borderTopWidth: 1, borderTopColor: NG.c.stroke }}>
-        <Row label="Subtotal" value={subtotal} />
-        <Row label="Delivery Fee" value={deliveryFee} />
+        <Row label="Subtotal" value={`R${subtotal.toFixed(2)}`} />
+        <Row label="Delivery Fee" value={`R${deliveryFee.toFixed(2)}`} />
 
         <View style={{ height: 10 }} />
 
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
           <Text style={{ color: NG.c.gold, fontWeight: "900", fontSize: 18 }}>Total</Text>
-          <Text style={{ color: NG.c.gold, fontWeight: "900", fontSize: 18 }}>{total}</Text>
+          <Text style={{ color: NG.c.gold, fontWeight: "900", fontSize: 18 }}>R{total.toFixed(2)}</Text>
         </View>
 
         <View style={{ marginTop: 12, marginBottom: 8 }}>
@@ -104,6 +78,7 @@ export default function CartWithItemsScreen({
                 navigation.navigate("Checkout");
               }
             }}
+            disabled={items.length === 0}
           />
         </View>
       </View>
@@ -120,7 +95,11 @@ function CartRow({
   onRemove: () => void;
   onUpdateQuantity: (qty: number) => void;
 }) {
-  const qty = parseInt(item.qty) || 1;
+  const hasImage = item.foodItemImage && item.foodItemImage.trim() !== "";
+  const itemTotal = (item.price * item.quantity) + (item.selectedExtras.reduce((sum, extra) => sum + extra.price, 0) * item.quantity);
+  const extrasText = item.selectedExtras.length > 0 
+    ? `Add-ons: ${item.selectedExtras.map(e => e.name).join(", ")}`
+    : "";
 
   return (
     <View style={{
@@ -133,20 +112,33 @@ function CartRow({
       gap: 12,
       alignItems: "center",
     }}>
-      <Image source={{ uri: item.img }} style={{ width: 56, height: 56, borderRadius: 12 }} />
+      {hasImage ? (
+        <Image source={{ uri: item.foodItemImage }} style={{ width: 56, height: 56, borderRadius: 12 }} />
+      ) : (
+        <View style={{ width: 56, height: 56, borderRadius: 12, backgroundColor: NG.c.panel2, alignItems: "center", justifyContent: "center" }}>
+          <Feather name="image" size={24} color={NG.c.muted2} />
+        </View>
+      )}
       <View style={{ flex: 1 }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-          <Text style={{ color: NG.c.text, fontWeight: "900" }}>{item.title}</Text>
+          <Text style={{ color: NG.c.text, fontWeight: "900" }}>{item.foodItemTitle}</Text>
           <Pressable onPress={onRemove}>
             <Feather name="trash-2" size={18} color="rgba(237,237,237,0.60)" />
           </Pressable>
         </View>
-        <Text style={{ color: NG.c.muted, marginTop: 6, fontSize: 12 }} numberOfLines={1}>
-          {item.subtitle}
-        </Text>
+        {extrasText ? (
+          <Text style={{ color: NG.c.muted, marginTop: 6, fontSize: 12 }} numberOfLines={1}>
+            {extrasText}
+          </Text>
+        ) : null}
+        {item.specialInstructions && (
+          <Text style={{ color: NG.c.muted2, marginTop: 4, fontSize: 11 }} numberOfLines={1}>
+            Note: {item.specialInstructions}
+          </Text>
+        )}
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 10 }}>
-          <QtyTiny qty={qty} onUpdateQuantity={onUpdateQuantity} />
-          <Text style={{ color: NG.c.gold, fontWeight: "900" }}>{item.price}</Text>
+          <QtyTiny qty={item.quantity} onUpdateQuantity={onUpdateQuantity} />
+          <Text style={{ color: NG.c.gold, fontWeight: "900" }}>R{itemTotal.toFixed(2)}</Text>
         </View>
       </View>
     </View>

@@ -3,11 +3,12 @@ import { View, Text, Image, ScrollView, Pressable, Dimensions, TextInput, Alert 
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from 'expo-image-picker';
 import { Screen, PrimaryButton, Card, NG, Input } from "../../components/ui/noirGold.ui";
-import { FOOD_ITEMS } from "../../data/foodItems";
 import { FoodCategory, FoodItem } from "../../types";
 import CustomModal from "../../components/Modal";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import ErrorMessage from "../../components/ErrorMessage";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { setLoading, setFoodItems, addFoodItem, updateFoodItem, deleteFoodItem, setError } from "../../store/slices/foodSlice";
 import { foodService } from "../../services/foodService";
 
 const { width } = Dimensions.get('window');
@@ -18,13 +19,14 @@ interface AdminFoodManagementScreenProps {
 }
 
 export default function AdminFoodManagementScreen({ navigation }: AdminFoodManagementScreenProps) {
+  const dispatch = useAppDispatch();
+  const { items: foodItems, isLoading, error: reduxError } = useAppSelector(state => state.food);
   const [selectedCategory, setSelectedCategory] = useState<FoodCategory | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<FoodItem | null>(null);
-  const [foodItems, setFoodItems] = useState<FoodItem[]>(FOOD_ITEMS);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [localError, setLocalError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const error = localError || reduxError;
 
   // Form state
   const [formData, setFormData] = useState({
@@ -55,7 +57,8 @@ export default function AdminFoodManagementScreen({ navigation }: AdminFoodManag
     });
     setSelectedImage(null);
     setEditingItem(null);
-    setError(null);
+    setLocalError(null);
+    dispatch(setError(null));
     setShowAddModal(true);
   };
 
@@ -94,33 +97,37 @@ export default function AdminFoodManagementScreen({ navigation }: AdminFoodManag
     });
     setSelectedImage(null);
     setEditingItem(item);
-    setError(null);
+    setLocalError(null);
+    dispatch(setError(null));
     setShowAddModal(true);
   };
 
   const handleDeleteItem = async (itemId: string) => {
     try {
-      setIsLoading(true);
-      setError(null);
+      dispatch(setLoading(true));
+      setLocalError(null);
+      dispatch(setError(null));
       const item = foodItems.find(i => i.id === itemId);
       await foodService.deleteFoodItem(itemId, item?.img);
-      setFoodItems(prev => prev.filter(item => item.id !== itemId));
+      dispatch(deleteFoodItem(itemId));
     } catch (error: any) {
-      setError(error.message || 'Failed to delete item');
+      setLocalError(error.message || 'Failed to delete item');
+      dispatch(setError(error.message || 'Failed to delete item'));
     } finally {
-      setIsLoading(false);
+      dispatch(setLoading(false));
     }
   };
 
   const handleSaveItem = async () => {
     if (!formData.title || !formData.price) {
-      setError('Please fill in all required fields');
+      setLocalError('Please fill in all required fields');
       return;
     }
 
     try {
-      setIsLoading(true);
-      setError(null);
+      dispatch(setLoading(true));
+      setLocalError(null);
+      dispatch(setError(null));
 
       const itemData = {
         title: formData.title,
@@ -138,20 +145,21 @@ export default function AdminFoodManagementScreen({ navigation }: AdminFoodManag
         await foodService.updateFoodItem(editingItem.id, itemData, selectedImage || undefined);
         const updatedItem = await foodService.getFoodItemById(editingItem.id);
         if (updatedItem) {
-          setFoodItems(prev => prev.map(item => item.id === editingItem.id ? updatedItem : item));
+          dispatch(updateFoodItem(updatedItem));
         }
       } else {
         const newItem = await foodService.createFoodItem(itemData, selectedImage || undefined);
-        setFoodItems(prev => [...prev, newItem]);
+        dispatch(addFoodItem(newItem));
       }
 
       setShowAddModal(false);
       setEditingItem(null);
       setSelectedImage(null);
     } catch (error: any) {
-      setError(error.message || 'Failed to save item');
+      setLocalError(error.message || 'Failed to save item');
+      dispatch(setError(error.message || 'Failed to save item'));
     } finally {
-      setIsLoading(false);
+      dispatch(setLoading(false));
     }
   };
 
@@ -278,13 +286,14 @@ export default function AdminFoodManagementScreen({ navigation }: AdminFoodManag
             setShowAddModal(false);
             setEditingItem(null);
             setSelectedImage(null);
-            setError(null);
+            setLocalError(null);
+            dispatch(setError(null));
           }
         }}
         title={editingItem ? "Edit Food Item" : "Add Food Item"}
       >
         <View style={{ gap: 12 }}>
-          {error && <ErrorMessage message={error} onDismiss={() => setError(null)} />}
+          {error && <ErrorMessage message={error} onDismiss={() => { setLocalError(null); dispatch(setError(null)); }} />}
           <Input
             icon="type"
             placeholder="Item Name"

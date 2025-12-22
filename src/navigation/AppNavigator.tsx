@@ -13,8 +13,7 @@ import RegisterScreen from '../screens/auth/RegisterScreen';
 // Main Screens
 import HomeScreen from '../screens/main/HomeScreen';
 import FoodItemDetailScreen from '../screens/main/FoodItemDetailScreen';
-import CartEmptyScreen from '../screens/main/CartEmptyScreen';
-import CartWithItemsScreen from '../screens/main/CartWithItemsScreen';
+import CartScreen from '../screens/main/CartScreen';
 import CheckoutScreen from '../screens/main/CheckoutScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
 import ProfileLoggedInScreen from '../screens/main/ProfileLoggedInScreen';
@@ -106,7 +105,7 @@ const MainNavigator = () => (
     />
     <MainTab.Screen
       name="Cart"
-      component={CartEmptyScreen}
+      component={CartScreen}
       options={{
         tabBarLabel: 'Cart',
         tabBarIcon: ({ color }) => <Feather name="shopping-bag" size={18} color={color} />,

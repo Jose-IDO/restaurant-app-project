@@ -1,53 +1,42 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Screen, Card, NG } from "../../components/ui/noirGold.ui";
 import { Order, OrderStatus } from "../../types";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { setLoading, setOrders, setError } from "../../store/slices/orderSlice";
+import { orderService } from "../../services/orderService";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import ErrorMessage from "../../components/ErrorMessage";
 
 interface OrderHistoryScreenProps {
   navigation?: any;
   orders?: Order[];
 }
 
-const SAMPLE_ORDERS: Order[] = [
-  {
-    id: "ORD001",
-    userId: "user1",
-    customerName: "John Doe",
-    customerEmail: "john@example.com",
-    items: [
-      { foodItemId: "1", foodItemTitle: "Seared Scallops", quantity: 2, price: 22.99 },
-      { foodItemId: "4", foodItemTitle: "Wagyu Beef Steak", quantity: 1, price: 75.99 },
-    ],
-    subtotal: 121.97,
-    deliveryFee: 25.00,
-    total: 146.97,
-    status: "delivered",
-    deliveryAddress: "123 Main St, City",
-    paymentMethod: "Credit Card",
-    createdAt: "2025-12-18T10:30:00Z",
-    updatedAt: "2025-12-18T12:00:00Z",
-  },
-  {
-    id: "ORD002",
-    userId: "user1",
-    customerName: "John Doe",
-    customerEmail: "john@example.com",
-    items: [
-      { foodItemId: "5", foodItemTitle: "Lobster Thermidor", quantity: 1, price: 42.99 },
-    ],
-    subtotal: 42.99,
-    deliveryFee: 25.00,
-    total: 67.99,
-    status: "delivered",
-    deliveryAddress: "123 Main St, City",
-    paymentMethod: "Stripe",
-    createdAt: "2025-12-15T14:20:00Z",
-    updatedAt: "2025-12-15T16:00:00Z",
-  },
-];
+export default function OrderHistoryScreen({ navigation, orders: propOrders }: OrderHistoryScreenProps) {
+  const dispatch = useAppDispatch();
+  const { orders: reduxOrders, isLoading, error } = useAppSelector(state => state.orders);
+  const { user } = useAppSelector(state => state.auth);
+  const displayOrders = propOrders || reduxOrders;
 
-export default function OrderHistoryScreen({ navigation, orders = SAMPLE_ORDERS }: OrderHistoryScreenProps) {
+  useEffect(() => {
+    const loadOrders = async () => {
+      if (user && reduxOrders.length === 0) {
+        try {
+          dispatch(setLoading(true));
+          const userOrders = await orderService.getUserOrders(user.uid);
+          dispatch(setOrders(userOrders));
+        } catch (error: any) {
+          dispatch(setError(error.message || "Failed to load orders"));
+        } finally {
+          dispatch(setLoading(false));
+        }
+      }
+    };
+
+    loadOrders();
+  }, [user]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   const getStatusColor = (status: OrderStatus) => {
@@ -77,6 +66,24 @@ export default function OrderHistoryScreen({ navigation, orders = SAMPLE_ORDERS 
     setSelectedOrder(order);
   };
 
+  if (isLoading && displayOrders.length === 0) {
+    return (
+      <Screen>
+        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 20 }}>
+          <Pressable onPress={() => navigation?.goBack()}>
+            <View style={{ width: 40, height: 40, justifyContent: "center", marginRight: 10 }}>
+              <Feather name="arrow-left" size={24} color={NG.c.text} />
+            </View>
+          </Pressable>
+          <Text style={{ color: NG.c.gold, fontWeight: "900", fontSize: 22 }}>
+            Order History
+          </Text>
+        </View>
+        <LoadingSpinner message="Loading orders..." />
+      </Screen>
+    );
+  }
+
   return (
     <Screen>
       <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 20 }}>
@@ -90,7 +97,29 @@ export default function OrderHistoryScreen({ navigation, orders = SAMPLE_ORDERS 
         </Text>
       </View>
 
-      {orders.length === 0 ? (
+      {error && (
+        <View style={{ marginBottom: 12 }}>
+          <ErrorMessage message={error} onRetry={() => {
+            dispatch(setError(null));
+            const loadOrders = async () => {
+              if (user) {
+                try {
+                  dispatch(setLoading(true));
+                  const userOrders = await orderService.getUserOrders(user.uid);
+                  dispatch(setOrders(userOrders));
+                } catch (error: any) {
+                  dispatch(setError(error.message || "Failed to load orders"));
+                } finally {
+                  dispatch(setLoading(false));
+                }
+              }
+            };
+            loadOrders();
+          }} />
+        </View>
+      )}
+
+      {displayOrders.length === 0 ? (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
           <Feather name="package" size={64} color={NG.c.muted2} />
           <Text style={{ color: NG.c.text, fontWeight: "900", fontSize: 18, marginTop: 16 }}>
@@ -102,7 +131,7 @@ export default function OrderHistoryScreen({ navigation, orders = SAMPLE_ORDERS 
         </View>
       ) : (
         <ScrollView showsVerticalScrollIndicator={false}>
-          {orders.map((order) => (
+          {displayOrders.map((order) => (
             <Card key={order.id} style={{ marginBottom: 12 }}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                 <View style={{ flex: 1 }}>

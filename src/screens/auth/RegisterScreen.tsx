@@ -1,7 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, Pressable, TextInput } from "react-native";
+import { View, Text, ScrollView, Pressable, TextInput, Alert } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Screen, TitleLogo, Input, PrimaryButton, NG } from "../../components/ui/noirGold.ui";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { setLoading, setUser, setUserProfile, setError } from "../../store/slices/authSlice";
+import { authService, RegisterData as AuthRegisterData } from "../../services/authService";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import ErrorMessage from "../../components/ErrorMessage";
 
 interface RegisterScreenProps {
   navigation?: any;
@@ -34,9 +39,52 @@ export default function RegisterScreen({ navigation, onRegister, onNavigateToLog
     zip: "",
   });
 
-  const handleSubmit = () => {
-    if (onRegister) {
-      onRegister(formData);
+  const dispatch = useAppDispatch();
+  const { isLoading, error } = useAppSelector(state => state.auth);
+
+  const handleSubmit = async () => {
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
+      dispatch(setError("Please fill in all required fields"));
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      dispatch(setError("Password must be at least 6 characters"));
+      return;
+    }
+
+    try {
+      dispatch(setLoading(true));
+      dispatch(setError(null));
+
+      const registerData: AuthRegisterData = {
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        password: formData.password,
+        phone: formData.phone || undefined,
+        address: (formData.street && formData.city && formData.zip) ? {
+          street: formData.street,
+          city: formData.city,
+          zip: formData.zip,
+          country: formData.state || "South Africa",
+        } : undefined,
+      };
+
+      const user = await authService.register(registerData);
+      dispatch(setUser(user));
+
+      // Fetch user profile
+      const profile = await authService.getUserProfile(user.uid);
+      if (profile) {
+        dispatch(setUserProfile(profile));
+      }
+
+      // Navigate to main app
+      navigation?.navigate("Main");
+    } catch (error: any) {
+      dispatch(setError(error.message || "Registration failed"));
+    } finally {
+      dispatch(setLoading(false));
     }
   };
 
@@ -210,9 +258,20 @@ export default function RegisterScreen({ navigation, onRegister, onNavigateToLog
           </View>
         </View>
 
+        {error && (
+          <View style={{ marginTop: 12 }}>
+            <ErrorMessage message={error} onDismiss={() => dispatch(setError(null))} />
+          </View>
+        )}
+
         <View style={{ marginTop: 18 }}>
-          <PrimaryButton label="Create Account" onPress={handleSubmit} />
+          <PrimaryButton 
+            label={isLoading ? "Creating account..." : "Create Account"} 
+            onPress={handleSubmit} 
+            disabled={isLoading}
+          />
         </View>
+        {isLoading && <LoadingSpinner message="Creating account..." />}
       </ScrollView>
     </Screen>
   );

@@ -1,7 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, Pressable } from "react-native";
+import { View, Text, ScrollView, Pressable, Alert } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Screen, TitleLogo, Input, PrimaryButton, NG } from "../../components/ui/noirGold.ui";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { setLoading, setUser, setUserProfile, setError } from "../../store/slices/authSlice";
+import { authService } from "../../services/authService";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import ErrorMessage from "../../components/ErrorMessage";
 
 interface LoginScreenProps {
   navigation?: any;
@@ -12,10 +17,38 @@ interface LoginScreenProps {
 export default function LoginScreen({ navigation, onLogin, onNavigateToSignup }: LoginScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const dispatch = useAppDispatch();
+  const { isLoading, error } = useAppSelector(state => state.auth);
 
-  const handleSubmit = () => {
-    if (onLogin) {
-      onLogin(email, password);
+  const handleSubmit = async () => {
+    if (!email || !password) {
+      dispatch(setError("Please enter email and password"));
+      return;
+    }
+
+    try {
+      dispatch(setLoading(true));
+      dispatch(setError(null));
+
+      const user = await authService.login(email, password);
+      dispatch(setUser(user));
+
+      // Fetch user profile
+      const profile = await authService.getUserProfile(user.uid);
+      if (profile) {
+        dispatch(setUserProfile(profile));
+      }
+
+      // Navigate based on admin status
+      if (profile?.isAdmin) {
+        navigation?.navigate("AdminMain");
+      } else {
+        navigation?.navigate("Main");
+      }
+    } catch (error: any) {
+      dispatch(setError(error.message || "Login failed"));
+    } finally {
+      dispatch(setLoading(false));
     }
   };
 
@@ -93,9 +126,16 @@ export default function LoginScreen({ navigation, onLogin, onNavigateToSignup }:
           secureTextEntry
         />
 
+        {error && (
+          <View style={{ marginTop: 12 }}>
+            <ErrorMessage message={error} onDismiss={() => dispatch(setError(null))} />
+          </View>
+        )}
+
         <View style={{ marginTop: 18 }}>
-          <PrimaryButton label="Login" onPress={handleSubmit} />
+          <PrimaryButton label={isLoading ? "Logging in..." : "Login"} onPress={handleSubmit} disabled={isLoading} />
         </View>
+        {isLoading && <LoadingSpinner message="Logging in..." />}
 
         <View style={{ marginTop: 18, borderTopWidth: 1, borderTopColor: NG.c.stroke }} />
 

@@ -1,80 +1,46 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Screen, Card, NG } from "../../components/ui/noirGold.ui";
 import { Order, OrderStatus } from "../../types";
 import CustomModal from "../../components/Modal";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { setLoading, setOrders, updateOrder, setError } from "../../store/slices/orderSlice";
+import { orderService } from "../../services/orderService";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import ErrorMessage from "../../components/ErrorMessage";
 
 interface AdminOrdersScreenProps {
   navigation?: any;
 }
 
-const SAMPLE_ORDERS: Order[] = [
-  {
-    id: "ORD001",
-    userId: "user1",
-    customerName: "John Doe",
-    customerEmail: "john@example.com",
-    customerPhone: "+27 12 345 6789",
-    items: [
-      { foodItemId: "1", foodItemTitle: "Seared Scallops", quantity: 2, price: 22.99 },
-      { foodItemId: "4", foodItemTitle: "Wagyu Beef Steak", quantity: 1, price: 75.99 },
-    ],
-    subtotal: 121.97,
-    deliveryFee: 25.00,
-    total: 146.97,
-    status: "pending",
-    deliveryAddress: "123 Main St, City",
-    paymentMethod: "Credit Card",
-    createdAt: "2025-12-20T10:30:00Z",
-    updatedAt: "2025-12-20T10:30:00Z",
-  },
-  {
-    id: "ORD002",
-    userId: "user2",
-    customerName: "Jane Smith",
-    customerEmail: "jane@example.com",
-    items: [
-      { foodItemId: "5", foodItemTitle: "Lobster Thermidor", quantity: 1, price: 42.99 },
-      { foodItemId: "7", foodItemTitle: "Chocolate Soufflé", quantity: 1, price: 18.99 },
-    ],
-    subtotal: 61.98,
-    deliveryFee: 25.00,
-    total: 86.98,
-    status: "preparing",
-    deliveryAddress: "456 Oak Ave, City",
-    paymentMethod: "Stripe",
-    createdAt: "2025-12-20T11:15:00Z",
-    updatedAt: "2025-12-20T11:20:00Z",
-  },
-  {
-    id: "ORD003",
-    userId: "user3",
-    customerName: "Mike Johnson",
-    customerEmail: "mike@example.com",
-    items: [
-      { foodItemId: "4", foodItemTitle: "Wagyu Beef Steak", quantity: 2, price: 75.99 },
-      { foodItemId: "13", foodItemTitle: "Truffle Fries", quantity: 2, price: 9.99 },
-    ],
-    subtotal: 171.96,
-    deliveryFee: 25.00,
-    total: 196.96,
-    status: "ready",
-    deliveryAddress: "789 Pine Rd, City",
-    paymentMethod: "Credit Card",
-    createdAt: "2025-12-19T14:00:00Z",
-    updatedAt: "2025-12-19T14:45:00Z",
-  },
-];
-
 const STATUS_OPTIONS: OrderStatus[] = ["pending", "preparing", "ready", "out_for_delivery", "delivered", "cancelled"];
 
 export default function AdminOrdersScreen({ navigation }: AdminOrdersScreenProps) {
-  const [orders, setOrders] = useState<Order[]>(SAMPLE_ORDERS);
+  const dispatch = useAppDispatch();
+  const { orders, isLoading, error } = useAppSelector(state => state.orders);
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | "all">("all");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
+
+  useEffect(() => {
+    const loadOrders = async () => {
+      if (orders.length === 0) {
+        try {
+          dispatch(setLoading(true));
+          const allOrders = await orderService.getAllOrders();
+          dispatch(setOrders(allOrders));
+        } catch (error: any) {
+          dispatch(setError(error.message || "Failed to load orders"));
+        } finally {
+          dispatch(setLoading(false));
+        }
+      }
+    };
+
+    loadOrders();
+  }, []);
 
   const getStatusColor = (status: OrderStatus) => {
     switch (status) {
@@ -102,16 +68,20 @@ export default function AdminOrdersScreen({ navigation }: AdminOrdersScreenProps
     setShowStatusModal(true);
   };
 
-  const handleStatusChange = (newStatus: OrderStatus) => {
+  const handleStatusChange = async (newStatus: OrderStatus) => {
     if (selectedOrder) {
-      setOrders(prev => prev.map(order =>
-        order.id === selectedOrder.id
-          ? { ...order, status: newStatus, updatedAt: new Date().toISOString() }
-          : order
-      ));
-      setShowStatusModal(false);
-      setSelectedOrder(null);
-      // TODO: Update in Firebase
+      try {
+        dispatch(setLoading(true));
+        await orderService.updateOrderStatus(selectedOrder.id, newStatus);
+        const updatedOrder = { ...selectedOrder, status: newStatus, updatedAt: new Date().toISOString() };
+        dispatch(updateOrder(updatedOrder));
+        setShowStatusModal(false);
+        setSelectedOrder(null);
+      } catch (error: any) {
+        dispatch(setError(error.message || "Failed to update order status"));
+      } finally {
+        dispatch(setLoading(false));
+      }
     }
   };
 
@@ -120,11 +90,42 @@ export default function AdminOrdersScreen({ navigation }: AdminOrdersScreenProps
     return date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  if (isLoading && orders.length === 0) {
+    return (
+      <Screen>
+        <Text style={{ color: NG.c.gold, fontWeight: "900", fontSize: 22, marginTop: 4 }}>
+          Order Management
+        </Text>
+        <LoadingSpinner message="Loading orders..." />
+      </Screen>
+    );
+  }
+
   return (
     <Screen>
       <Text style={{ color: NG.c.gold, fontWeight: "900", fontSize: 22, marginTop: 4 }}>
         Order Management
       </Text>
+
+      {error && (
+        <View style={{ marginTop: 12 }}>
+          <ErrorMessage message={error} onRetry={() => {
+            dispatch(setError(null));
+            const loadOrders = async () => {
+              try {
+                dispatch(setLoading(true));
+                const allOrders = await orderService.getAllOrders();
+                dispatch(setOrders(allOrders));
+              } catch (error: any) {
+                dispatch(setError(error.message || "Failed to load orders"));
+              } finally {
+                dispatch(setLoading(false));
+              }
+            };
+            loadOrders();
+          }} />
+        </View>
+      )}
 
       <ScrollView
         horizontal

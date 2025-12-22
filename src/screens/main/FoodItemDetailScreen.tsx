@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import { View, Text, Image, ScrollView, TextInput, Pressable } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Screen, Pill, Divider, PrimaryButton, NG } from "../../components/ui/noirGold.ui";
-import { FOOD_ITEMS } from "../../data/foodItems";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { addToCart } from "../../store/slices/cartSlice";
+import { FoodItem } from "../../types";
 
 interface FoodItemDetailScreenProps {
   route?: any;
@@ -35,11 +37,14 @@ export default function FoodItemDetailScreen({
   const routeItem = routeParams.foodItem;
   const routeItemId = routeParams.itemId || itemId;
   
-  // Priority: route foodItem > prop foodItem > find by ID
-  let item = routeItem || foodItem;
+  const dispatch = useAppDispatch();
+  const { items: foodItems } = useAppSelector(state => state.food);
+
+  // Priority: route foodItem > prop foodItem > find by ID from Redux > find by ID from static data
+  let item: FoodItem | null = routeItem || foodItem;
   
   if (!item && routeItemId) {
-    item = FOOD_ITEMS.find(foodItem => foodItem.id === routeItemId) || null;
+    item = foodItems.find(foodItem => foodItem.id === routeItemId) || null;
   }
 
   useEffect(() => {
@@ -70,14 +75,21 @@ export default function FoodItemDetailScreen({
   };
 
   const handleAddToCart = () => {
-    if (onAddToCart) {
-      onAddToCart({
-        itemId: item?.id || "",
-        quantity,
-        selectedExtras,
-        specialInstructions,
-      });
-    }
+    if (!item) return;
+
+    const selectedExtrasData = item.extras?.filter(extra => selectedExtras.includes(extra.id)) || [];
+
+    dispatch(addToCart({
+      id: `${item.id}_${Date.now()}`,
+      foodItemId: item.id,
+      foodItemTitle: item.title,
+      foodItemImage: item.img,
+      price: item.price,
+      quantity,
+      selectedExtras: selectedExtrasData,
+      specialInstructions: specialInstructions || undefined,
+    }));
+
     navigation?.goBack();
   };
 
@@ -100,10 +112,18 @@ export default function FoodItemDetailScreen({
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-        <Image
-          source={{ uri: item?.img || item?.image || "" }}
-          style={{ width: "100%", height: 230 }}
-        />
+        {item?.img && item.img.trim() !== "" ? (
+          <Image
+            source={{ uri: item.img }}
+            style={{ width: "100%", height: 230 }}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={{ width: "100%", height: 230, backgroundColor: NG.c.panel2, alignItems: "center", justifyContent: "center" }}>
+            <Feather name="image" size={64} color={NG.c.muted2} />
+            <Text style={{ color: NG.c.muted2, fontSize: 14, marginTop: 12 }}>No image available</Text>
+          </View>
+        )}
 
         <View style={{ paddingHorizontal: 18, paddingTop: 16 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>

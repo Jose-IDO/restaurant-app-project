@@ -1,49 +1,49 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Screen, Card, NG, PrimaryButton } from "../../components/ui/noirGold.ui";
 import { OrderStatus } from "../../types";
+import { useAppSelector } from "../../store/hooks";
 
 interface AdminDashboardScreenProps {
   navigation?: any;
 }
 
-// Sample data - will be replaced with Firebase data
-const DASHBOARD_STATS = {
-  totalOrders: 152,
-  totalRevenue: 13000.00,
-  menuItems: 15,
-  customers: 156,
-  pendingOrders: 8,
-  preparingOrders: 12,
-  readyOrders: 5,
-};
-
-const RECENT_ORDERS = [
-  {
-    id: "ORD001",
-    customer: "John Doe",
-    total: 146.97,
-    status: "pending" as OrderStatus,
-    time: "10:30 AM",
-  },
-  {
-    id: "ORD002",
-    customer: "Jane Smith",
-    total: 86.98,
-    status: "preparing" as OrderStatus,
-    time: "11:15 AM",
-  },
-  {
-    id: "ORD003",
-    customer: "Mike Johnson",
-    total: 196.96,
-    status: "ready" as OrderStatus,
-    time: "2:00 PM",
-  },
-];
-
 export default function AdminDashboardScreen({ navigation }: AdminDashboardScreenProps) {
+  const { orders } = useAppSelector(state => state.orders);
+  const { items: foodItems } = useAppSelector(state => state.food);
+
+  const dashboardStats = useMemo(() => {
+    const totalOrders = orders.length;
+    const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+    const menuItems = foodItems.length;
+    const uniqueCustomers = new Set(orders.map(order => order.userId)).size;
+    const pendingOrders = orders.filter(order => order.status === "pending").length;
+    const preparingOrders = orders.filter(order => order.status === "preparing").length;
+    const readyOrders = orders.filter(order => order.status === "ready").length;
+
+    return {
+      totalOrders,
+      totalRevenue,
+      menuItems,
+      customers: uniqueCustomers,
+      pendingOrders,
+      preparingOrders,
+      readyOrders,
+    };
+  }, [orders, foodItems]);
+
+  const recentOrders = useMemo(() => {
+    return orders
+      .slice(0, 3)
+      .map(order => ({
+        id: order.id,
+        customer: order.customerName,
+        total: order.total,
+        status: order.status,
+        time: new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      }));
+  }, [orders]);
   const getStatusColor = (status: OrderStatus) => {
     switch (status) {
       case "pending": return "#ffc107";
@@ -82,7 +82,7 @@ export default function AdminDashboardScreen({ navigation }: AdminDashboardScree
             <View style={{ alignItems: "center" }}>
               <Feather name="shopping-bag" size={32} color={NG.c.gold} />
               <Text style={{ color: NG.c.text, fontWeight: "900", fontSize: 24, marginTop: 10 }}>
-                {DASHBOARD_STATS.totalOrders}
+                {dashboardStats.totalOrders}
               </Text>
               <Text style={{ color: NG.c.muted, marginTop: 5, fontSize: 12 }}>Total Orders</Text>
             </View>
@@ -92,7 +92,7 @@ export default function AdminDashboardScreen({ navigation }: AdminDashboardScree
             <View style={{ alignItems: "center" }}>
               <Feather name="dollar-sign" size={32} color={NG.c.gold} />
               <Text style={{ color: NG.c.text, fontWeight: "900", fontSize: 20, marginTop: 10 }}>
-                R{DASHBOARD_STATS.totalRevenue.toLocaleString()}
+                R{dashboardStats.totalRevenue.toLocaleString()}
               </Text>
               <Text style={{ color: NG.c.muted, marginTop: 5, fontSize: 12 }}>Revenue</Text>
             </View>
@@ -102,7 +102,7 @@ export default function AdminDashboardScreen({ navigation }: AdminDashboardScree
             <View style={{ alignItems: "center" }}>
               <Feather name="coffee" size={32} color={NG.c.gold} />
               <Text style={{ color: NG.c.text, fontWeight: "900", fontSize: 24, marginTop: 10 }}>
-                {DASHBOARD_STATS.menuItems}
+                {dashboardStats.menuItems}
               </Text>
               <Text style={{ color: NG.c.muted, marginTop: 5, fontSize: 12 }}>Menu Items</Text>
             </View>
@@ -112,7 +112,7 @@ export default function AdminDashboardScreen({ navigation }: AdminDashboardScree
             <View style={{ alignItems: "center" }}>
               <Feather name="users" size={32} color={NG.c.gold} />
               <Text style={{ color: NG.c.text, fontWeight: "900", fontSize: 24, marginTop: 10 }}>
-                {DASHBOARD_STATS.customers}
+                {dashboardStats.customers}
               </Text>
               <Text style={{ color: NG.c.muted, marginTop: 5, fontSize: 12 }}>Customers</Text>
             </View>
@@ -132,7 +132,7 @@ export default function AdminDashboardScreen({ navigation }: AdminDashboardScree
                 alignItems: "center",
               }}>
                 <Text style={{ color: "#ffc107", fontWeight: "900", fontSize: 20 }}>
-                  {DASHBOARD_STATS.pendingOrders}
+                  {dashboardStats.pendingOrders}
                 </Text>
                 <Text style={{ color: NG.c.muted, fontSize: 11, marginTop: 4 }}>Pending</Text>
               </View>
@@ -147,7 +147,7 @@ export default function AdminDashboardScreen({ navigation }: AdminDashboardScree
                 alignItems: "center",
               }}>
                 <Text style={{ color: "#007bff", fontWeight: "900", fontSize: 20 }}>
-                  {DASHBOARD_STATS.preparingOrders}
+                  {dashboardStats.preparingOrders}
                 </Text>
                 <Text style={{ color: NG.c.muted, fontSize: 11, marginTop: 4 }}>Preparing</Text>
               </View>
@@ -162,7 +162,7 @@ export default function AdminDashboardScreen({ navigation }: AdminDashboardScree
                 alignItems: "center",
               }}>
                 <Text style={{ color: "#28a745", fontWeight: "900", fontSize: 20 }}>
-                  {DASHBOARD_STATS.readyOrders}
+                  {dashboardStats.readyOrders}
                 </Text>
                 <Text style={{ color: NG.c.muted, fontSize: 11, marginTop: 4 }}>Ready</Text>
               </View>
@@ -177,7 +177,7 @@ export default function AdminDashboardScreen({ navigation }: AdminDashboardScree
               <Text style={{ color: NG.c.gold, fontWeight: "800", fontSize: 12 }}>View All</Text>
             </Pressable>
           </View>
-          {RECENT_ORDERS.map((order) => (
+          {recentOrders.map((order) => (
             <View
               key={order.id}
               style={{

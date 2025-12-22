@@ -2,6 +2,10 @@ import React from "react";
 import { View, Text, Pressable } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Screen, PrimaryButton, NG } from "../../components/ui/noirGold.ui";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { logout } from "../../store/slices/authSlice";
+import { authService } from "../../services/authService";
+import ProfileLoggedInScreen from "./ProfileLoggedInScreen";
 
 interface ProfileScreenProps {
   navigation?: any;
@@ -9,8 +13,22 @@ interface ProfileScreenProps {
   onLoginPress?: () => void;
 }
 
-export default function ProfileScreen({ navigation, isLoggedIn = false, onLoginPress }: ProfileScreenProps) {
-  if (!isLoggedIn) {
+export default function ProfileScreen({ navigation, isLoggedIn, onLoginPress }: ProfileScreenProps) {
+  const dispatch = useAppDispatch();
+  const { isAuthenticated, userProfile } = useAppSelector(state => state.auth);
+  const isUserLoggedIn = isLoggedIn !== undefined ? isLoggedIn : isAuthenticated;
+
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+      dispatch(logout());
+    } catch (error) {
+      // Even if logout fails, clear local state
+      dispatch(logout());
+    }
+  };
+
+  if (!isUserLoggedIn) {
     return (
       <Screen>
         <Pressable onPress={() => navigation?.goBack()}>
@@ -60,12 +78,20 @@ export default function ProfileScreen({ navigation, isLoggedIn = false, onLoginP
     );
   }
 
-  // Logged in profile view will be added later
+  // Show logged in profile
   return (
-    <Screen>
-      <Text style={{ color: NG.c.text, fontSize: 22, fontWeight: "900" }}>Profile</Text>
-      <Text style={{ color: NG.c.muted, marginTop: 10 }}>Logged in user profile (to be implemented)</Text>
-    </Screen>
+    <ProfileLoggedInScreen
+      navigation={navigation}
+      user={userProfile ? {
+        name: userProfile.name,
+        email: userProfile.email,
+        phone: userProfile.phone,
+        address: userProfile.address ? 
+          `${userProfile.address.street}, ${userProfile.address.city}, ${userProfile.address.zip}` : 
+          undefined,
+      } : undefined}
+      onLogout={handleLogout}
+    />
   );
 }
 

@@ -1,12 +1,37 @@
-import { initStripe, presentPaymentSheet, createPaymentMethod } from '@stripe/stripe-react-native';
+import { Platform } from 'react-native';
 
 // Stripe publishable key - use test key for demo
 const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_51...';
 
 let stripeInitialized = false;
 
+// Only import Stripe on native platforms (not web)
+let initStripe: any;
+let presentPaymentSheet: any;
+let createPaymentMethod: any;
+
+if (Platform.OS !== 'web') {
+  try {
+    const stripeModule = require('@stripe/stripe-react-native');
+    initStripe = stripeModule.initStripe;
+    presentPaymentSheet = stripeModule.presentPaymentSheet;
+    createPaymentMethod = stripeModule.createPaymentMethod;
+  } catch (error) {
+    console.warn('Stripe React Native not available:', error);
+  }
+}
+
 export const stripeService = {
   async initialize(): Promise<void> {
+    if (Platform.OS === 'web') {
+      console.warn('Stripe is not supported on web platform');
+      return;
+    }
+
+    if (!initStripe) {
+      throw new Error('Stripe React Native is not available on this platform');
+    }
+
     if (!stripeInitialized) {
       try {
         await initStripe({
@@ -38,6 +63,19 @@ export const stripeService = {
   },
 
   async processPayment(clientSecret: string): Promise<{ success: boolean; paymentIntentId?: string }> {
+    if (Platform.OS === 'web') {
+      // For web, simulate payment success (demo mode)
+      console.warn('Stripe payment simulated on web platform');
+      return {
+        success: true,
+        paymentIntentId: `pi_web_${Date.now()}`,
+      };
+    }
+
+    if (!presentPaymentSheet) {
+      throw new Error('Stripe React Native is not available on this platform');
+    }
+
     try {
       await this.initialize();
 
@@ -67,6 +105,15 @@ export const stripeService = {
     expiryYear: number;
     cvc: string;
   }): Promise<string> {
+    if (Platform.OS === 'web') {
+      // For web, return mock payment method ID
+      return `pm_web_${Date.now()}`;
+    }
+
+    if (!createPaymentMethod) {
+      throw new Error('Stripe React Native is not available on this platform');
+    }
+
     try {
       await this.initialize();
 
