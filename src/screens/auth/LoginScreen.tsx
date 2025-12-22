@@ -117,15 +117,15 @@ export default function LoginScreen({ navigation, onLogin, onNavigateToSignup }:
         </Pressable>
 
         <Pressable
-          onPress={() => navigation?.navigate("AdminLogin")}
+          onPress={() => navigation?.navigate("AdminMain")}
           style={{
-            marginTop: 16,
+            marginTop: 20,
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <Text style={{ color: NG.c.muted2, fontWeight: "700", fontSize: 13 }}>
-            Admin Login
+          <Text style={{ color: NG.c.muted, fontWeight: "700", fontSize: 14 }}>
+            Admin
           </Text>
         </Pressable>
       </ScrollView>

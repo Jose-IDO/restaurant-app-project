@@ -124,3 +124,5 @@ npm start
 - Design components from Lovable will be integrated
 - Aiming for 30+ commits over the development period
 
+
+

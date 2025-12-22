@@ -25,6 +25,7 @@ import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
 import AdminFoodManagementScreen from '../screens/admin/AdminFoodManagementScreen';
 import AdminOrdersScreen from '../screens/admin/AdminOrdersScreen';
 import AdminAnalyticsScreen from '../screens/admin/AdminAnalyticsScreen';
+import AdminRestaurantSettingsScreen from '../screens/admin/AdminRestaurantSettingsScreen';
 
 export type RootStackParamList = {
   Auth: undefined;
@@ -38,6 +39,7 @@ export type RootStackParamList = {
   OrderPlaced: undefined;
   AdminLogin: undefined;
   AdminMain: undefined;
+  AdminRestaurantSettings: undefined;
 };
 
 export type AuthStackParamList = {
@@ -56,6 +58,7 @@ export type AdminTabParamList = {
   AdminFood: undefined;
   AdminOrders: undefined;
   AdminAnalytics: undefined;
+  AdminRestaurantSettings: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -187,6 +190,7 @@ const AppNavigator = () => {
             <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
             <Stack.Screen name="Main" component={MainNavigator} />
             <Stack.Screen name="AdminMain" component={AdminNavigator} />
+            <Stack.Screen name="AdminRestaurantSettings" component={AdminRestaurantSettingsScreen} />
             <Stack.Screen name="Auth" component={AuthNavigator} />
             <Stack.Screen name="FoodItemDetail" component={FoodItemDetailScreen} />
             <Stack.Screen name="Checkout" component={CheckoutScreen} />
@@ -196,6 +200,7 @@ const AppNavigator = () => {
           <>
             <Stack.Screen name="AdminMain" component={AdminNavigator} />
             <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
+            <Stack.Screen name="AdminRestaurantSettings" component={AdminRestaurantSettingsScreen} />
           </>
         ) : (
           <>

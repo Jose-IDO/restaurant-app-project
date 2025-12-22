@@ -61,3 +61,5 @@ export function BottomTabs({ activeTab = "Menu", onTabPress }: BottomTabsProps) 
   );
 }
 
+
+

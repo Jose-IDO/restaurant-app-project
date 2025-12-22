@@ -1,16 +1,4 @@
-import { FoodCategory } from '../types';
-
-export interface FoodItem {
-  id: string;
-  title: string;
-  sub: string;
-  img: string;
-  category: FoodCategory;
-  price: number;
-  description: string;
-  ingredients: string[];
-  extras?: Array<{ id: string; name: string; price: number }>;
-}
+import { FoodCategory, FoodItem } from '../types';
 
 export const FOOD_ITEMS: FoodItem[] = [
   // Starters (3 items)

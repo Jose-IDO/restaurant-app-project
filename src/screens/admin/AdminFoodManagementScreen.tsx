@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { View, Text, Image, ScrollView, Pressable, Dimensions } from "react-native";
+import { View, Text, Image, ScrollView, Pressable, Dimensions, TextInput } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { Screen, PrimaryButton, Card, NG } from "../../components/ui/noirGold.ui";
+import { Screen, PrimaryButton, Card, NG, Input } from "../../components/ui/noirGold.ui";
 import { FOOD_ITEMS } from "../../data/foodItems";
-import { FoodCategory } from "../../types";
+import { FoodCategory, FoodItem } from "../../types";
+import CustomModal from "../../components/Modal";
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.7;
@@ -14,12 +15,87 @@ interface AdminFoodManagementScreenProps {
 
 export default function AdminFoodManagementScreen({ navigation }: AdminFoodManagementScreenProps) {
   const [selectedCategory, setSelectedCategory] = useState<FoodCategory | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingItem, setEditingItem] = useState<FoodItem | null>(null);
+  const [foodItems, setFoodItems] = useState<FoodItem[]>(FOOD_ITEMS);
+
+  // Form state
+  const [formData, setFormData] = useState({
+    title: "",
+    sub: "",
+    img: "",
+    category: "Starters" as FoodCategory,
+    price: "",
+    description: "",
+    ingredients: "",
+  });
 
   const filteredItems = selectedCategory
-    ? FOOD_ITEMS.filter(item => item.category === selectedCategory)
-    : FOOD_ITEMS;
+    ? foodItems.filter(item => item.category === selectedCategory)
+    : foodItems;
 
   const categories: FoodCategory[] = ["Starters", "Mains", "Desserts", "Drinks", "Sides"];
+
+  const handleAddItem = () => {
+    setFormData({
+      title: "",
+      sub: "",
+      img: "",
+      category: "Starters",
+      price: "",
+      description: "",
+      ingredients: "",
+    });
+    setEditingItem(null);
+    setShowAddModal(true);
+  };
+
+  const handleEditItem = (item: FoodItem) => {
+    setFormData({
+      title: item.title,
+      sub: item.sub,
+      img: item.img,
+      category: item.category,
+      price: item.price.toString(),
+      description: item.description,
+      ingredients: item.ingredients.join(", "),
+    });
+    setEditingItem(item);
+    setShowAddModal(true);
+  };
+
+  const handleDeleteItem = (itemId: string) => {
+    setFoodItems(prev => prev.filter(item => item.id !== itemId));
+    // TODO: Delete from Firebase
+  };
+
+  const handleSaveItem = () => {
+    if (!formData.title || !formData.price) {
+      return; // Basic validation
+    }
+
+    const newItem: FoodItem = {
+      id: editingItem?.id || Date.now().toString(),
+      title: formData.title,
+      sub: formData.sub,
+      img: formData.img || "https://via.placeholder.com/400",
+      category: formData.category,
+      price: parseFloat(formData.price),
+      description: formData.description,
+      ingredients: formData.ingredients.split(",").map(i => i.trim()).filter(i => i),
+      extras: editingItem?.extras || [],
+    };
+
+    if (editingItem) {
+      setFoodItems(prev => prev.map(item => item.id === editingItem.id ? newItem : item));
+    } else {
+      setFoodItems(prev => [...prev, newItem]);
+    }
+
+    setShowAddModal(false);
+    setEditingItem(null);
+    // TODO: Save to Firebase
+  };
 
   return (
     <Screen>
@@ -27,7 +103,7 @@ export default function AdminFoodManagementScreen({ navigation }: AdminFoodManag
         <Text style={{ color: NG.c.gold, fontWeight: "900", fontSize: 22, marginTop: 4 }}>
           Food Management
         </Text>
-        <Pressable>
+        <Pressable onPress={handleAddItem}>
           <View style={{
             width: 40,
             height: 40,
@@ -103,7 +179,7 @@ export default function AdminFoodManagementScreen({ navigation }: AdminFoodManag
               R{item.price.toFixed(2)}
             </Text>
             <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
-              <Pressable style={{ flex: 1 }}>
+              <Pressable style={{ flex: 1 }} onPress={() => handleEditItem(item)}>
                 <View style={{
                   paddingVertical: 8,
                   borderRadius: 8,
@@ -114,7 +190,7 @@ export default function AdminFoodManagementScreen({ navigation }: AdminFoodManag
                   <Feather name="edit" size={16} color={NG.c.gold} />
                 </View>
               </Pressable>
-              <Pressable style={{ flex: 1 }}>
+              <Pressable style={{ flex: 1 }} onPress={() => handleDeleteItem(item.id)}>
                 <View style={{
                   paddingVertical: 8,
                   borderRadius: 8,
@@ -129,6 +205,123 @@ export default function AdminFoodManagementScreen({ navigation }: AdminFoodManag
           </Card>
         ))}
       </ScrollView>
+
+      <CustomModal
+        visible={showAddModal}
+        onClose={() => {
+          setShowAddModal(false);
+          setEditingItem(null);
+        }}
+        title={editingItem ? "Edit Food Item" : "Add Food Item"}
+      >
+        <View style={{ gap: 12 }}>
+          <Input
+            icon="type"
+            placeholder="Item Name"
+            value={formData.title}
+            onChangeText={(text) => setFormData({ ...formData, title: text })}
+          />
+          <Input
+            icon="file-text"
+            placeholder="Subtitle"
+            value={formData.sub}
+            onChangeText={(text) => setFormData({ ...formData, sub: text })}
+          />
+          <Input
+            icon="image"
+            placeholder="Image URL"
+            value={formData.img}
+            onChangeText={(text) => setFormData({ ...formData, img: text })}
+          />
+          <View style={{ marginBottom: 12 }}>
+            <Text style={{ color: NG.c.text, fontWeight: "800", marginBottom: 8, fontSize: 13 }}>
+              Category
+            </Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+              {categories.map((cat) => (
+                <Pressable
+                  key={cat}
+                  onPress={() => setFormData({ ...formData, category: cat })}
+                >
+                  <View style={{
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                    borderRadius: 8,
+                    backgroundColor: formData.category === cat ? NG.c.gold : NG.c.panel2,
+                    borderWidth: 1,
+                    borderColor: formData.category === cat ? "transparent" : NG.c.stroke,
+                  }}>
+                    <Text style={{
+                      color: formData.category === cat ? "#151515" : NG.c.text,
+                      fontWeight: "800",
+                      fontSize: 12,
+                    }}>
+                      {cat}
+                    </Text>
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+          <Input
+            icon="dollar-sign"
+            placeholder="Price"
+            value={formData.price}
+            onChangeText={(text) => setFormData({ ...formData, price: text })}
+            keyboardType="decimal-pad"
+          />
+          <View style={{ marginBottom: 12 }}>
+            <Text style={{ color: NG.c.text, fontWeight: "800", marginBottom: 8, fontSize: 13 }}>
+              Description
+            </Text>
+            <TextInput
+              style={{
+                backgroundColor: NG.c.panel2,
+                borderRadius: NG.r.md,
+                borderWidth: 1,
+                borderColor: NG.c.stroke,
+                padding: 12,
+                color: NG.c.text,
+                minHeight: 80,
+                textAlignVertical: "top",
+              }}
+              placeholder="Item description"
+              placeholderTextColor={NG.c.muted2}
+              value={formData.description}
+              onChangeText={(text) => setFormData({ ...formData, description: text })}
+              multiline
+            />
+          </View>
+          <View style={{ marginBottom: 12 }}>
+            <Text style={{ color: NG.c.text, fontWeight: "800", marginBottom: 8, fontSize: 13 }}>
+              Ingredients (comma-separated)
+            </Text>
+            <TextInput
+              style={{
+                backgroundColor: NG.c.panel2,
+                borderRadius: NG.r.md,
+                borderWidth: 1,
+                borderColor: NG.c.stroke,
+                padding: 12,
+                color: NG.c.text,
+                minHeight: 60,
+                textAlignVertical: "top",
+              }}
+              placeholder="Ingredient 1, Ingredient 2, ..."
+              placeholderTextColor={NG.c.muted2}
+              value={formData.ingredients}
+              onChangeText={(text) => setFormData({ ...formData, ingredients: text })}
+              multiline
+            />
+          </View>
+          <View style={{ marginTop: 8 }}>
+            <PrimaryButton
+              label={editingItem ? "Update Item" : "Add Item"}
+              onPress={handleSaveItem}
+            />
+          </View>
+        </View>
+      </CustomModal>
     </Screen>
   );
 }
