@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Feather } from '@expo/vector-icons';
 import { NG } from '../components/ui/noirGold.ui';
+import { useAppSelector } from '../store/hooks';
 
 // Auth Screens
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -18,6 +19,7 @@ import CheckoutScreen from '../screens/main/CheckoutScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
 import ProfileLoggedInScreen from '../screens/main/ProfileLoggedInScreen';
 import OrderPlacedModalScreen from '../screens/main/OrderPlacedModalScreen';
+import OrderHistoryScreen from '../screens/main/OrderHistoryScreen';
 
 // Admin Screens
 import AdminLoginScreen from '../screens/admin/AdminLoginScreen';
@@ -37,6 +39,7 @@ export type RootStackParamList = {
   Checkout: undefined;
   Profile: undefined;
   OrderPlaced: undefined;
+  OrderHistory: undefined;
   AdminLogin: undefined;
   AdminMain: undefined;
   AdminRestaurantSettings: undefined;
@@ -176,9 +179,10 @@ const AdminNavigator = () => (
 );
 
 const AppNavigator = () => {
-  // For now, default to not authenticated - will be connected to Redux later
-  const isAuthenticated = false;
-  const isAdmin = false; // Will be connected to Redux later
+  const { isAuthenticated, isAdmin } = useAppSelector(state => ({
+    isAuthenticated: state.auth.isAuthenticated,
+    isAdmin: state.auth.isAdmin,
+  }));
 
   return (
     <NavigationContainer>
@@ -195,6 +199,7 @@ const AppNavigator = () => {
             <Stack.Screen name="FoodItemDetail" component={FoodItemDetailScreen} />
             <Stack.Screen name="Checkout" component={CheckoutScreen} />
             <Stack.Screen name="OrderPlaced" component={OrderPlacedModalScreen} />
+            <Stack.Screen name="OrderHistory" component={OrderHistoryScreen} />
           </>
         ) : isAdmin ? (
           <>
@@ -208,6 +213,7 @@ const AppNavigator = () => {
             <Stack.Screen name="FoodItemDetail" component={FoodItemDetailScreen} />
             <Stack.Screen name="Checkout" component={CheckoutScreen} />
             <Stack.Screen name="OrderPlaced" component={OrderPlacedModalScreen} />
+            <Stack.Screen name="OrderHistory" component={OrderHistoryScreen} />
           </>
         )}
       </Stack.Navigator>

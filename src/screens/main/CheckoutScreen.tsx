@@ -1,7 +1,10 @@
-import React from "react";
-import { View, Text, Pressable } from "react-native";
+import React, { useState } from "react";
+import { View, Text, Pressable, Alert } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Screen, Card, PrimaryButton, NG } from "../../components/ui/noirGold.ui";
+import { stripeService } from "../../services/stripeService";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import ErrorMessage from "../../components/ErrorMessage";
 
 interface CheckoutScreenProps {
   navigation?: any;
@@ -22,6 +25,44 @@ export default function CheckoutScreen({
   onEditPayment,
   onPlaceOrder,
 }: CheckoutScreenProps) {
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handlePlaceOrder = async () => {
+    if (paymentMethod === "No payment method saved") {
+      Alert.alert("Payment Required", "Please select a payment method");
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      setError(null);
+
+      // Extract numeric value from total string (e.g., "R381.00" -> 38100 cents)
+      const totalAmount = parseFloat(total.replace(/[^0-9.]/g, '')) * 100; // Convert to cents
+
+      // Create payment intent
+      const clientSecret = await stripeService.createPaymentIntent(totalAmount, 'zar');
+
+      // Process payment
+      const result = await stripeService.processPayment(clientSecret);
+
+      if (result.success) {
+        if (onPlaceOrder) {
+          onPlaceOrder(result.paymentIntentId);
+        } else if (navigation) {
+          navigation.navigate("OrderPlaced");
+        }
+      } else {
+        setError("Payment failed. Please try again.");
+      }
+    } catch (error: any) {
+      setError(error.message || "Failed to process payment");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <Screen>
       <Pressable onPress={() => navigation?.goBack()}>
@@ -56,20 +97,22 @@ export default function CheckoutScreen({
         </Card>
       </Pressable>
 
+      {error && (
+        <View style={{ marginBottom: 12 }}>
+          <ErrorMessage message={error} onDismiss={() => setError(null)} />
+        </View>
+      )}
+
       <View style={{ flex: 1 }} />
 
       <View style={{ marginBottom: 18 }}>
         <PrimaryButton
-          label={`Place Order - ${total}`}
-          onPress={() => {
-            if (onPlaceOrder) {
-              onPlaceOrder();
-            } else if (navigation) {
-              navigation.navigate("OrderPlaced");
-            }
-          }}
+          label={isProcessing ? "Processing..." : `Place Order - ${total}`}
+          onPress={handlePlaceOrder}
+          disabled={isProcessing}
         />
       </View>
+      {isProcessing && <LoadingSpinner fullScreen message="Processing payment..." />}
     </Screen>
   );
 }

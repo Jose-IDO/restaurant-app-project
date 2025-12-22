@@ -1,10 +1,14 @@
 import React, { useState } from "react";
-import { View, Text, Image, ScrollView, Pressable, Dimensions, TextInput } from "react-native";
+import { View, Text, Image, ScrollView, Pressable, Dimensions, TextInput, Alert } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import * as ImagePicker from 'expo-image-picker';
 import { Screen, PrimaryButton, Card, NG, Input } from "../../components/ui/noirGold.ui";
 import { FOOD_ITEMS } from "../../data/foodItems";
 import { FoodCategory, FoodItem } from "../../types";
 import CustomModal from "../../components/Modal";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import ErrorMessage from "../../components/ErrorMessage";
+import { foodService } from "../../services/foodService";
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.7;
@@ -18,6 +22,9 @@ export default function AdminFoodManagementScreen({ navigation }: AdminFoodManag
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<FoodItem | null>(null);
   const [foodItems, setFoodItems] = useState<FoodItem[]>(FOOD_ITEMS);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -46,8 +53,33 @@ export default function AdminFoodManagementScreen({ navigation }: AdminFoodManag
       description: "",
       ingredients: "",
     });
+    setSelectedImage(null);
     setEditingItem(null);
+    setError(null);
     setShowAddModal(true);
+  };
+
+  const pickImage = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Please grant camera roll permissions to upload images');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        setSelectedImage(result.assets[0].uri);
+      }
+    } catch (error: any) {
+      setError(error.message || 'Failed to pick image');
+    }
   };
 
   const handleEditItem = (item: FoodItem) => {
@@ -60,41 +92,67 @@ export default function AdminFoodManagementScreen({ navigation }: AdminFoodManag
       description: item.description,
       ingredients: item.ingredients.join(", "),
     });
+    setSelectedImage(null);
     setEditingItem(item);
+    setError(null);
     setShowAddModal(true);
   };
 
-  const handleDeleteItem = (itemId: string) => {
-    setFoodItems(prev => prev.filter(item => item.id !== itemId));
-    // TODO: Delete from Firebase
+  const handleDeleteItem = async (itemId: string) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const item = foodItems.find(i => i.id === itemId);
+      await foodService.deleteFoodItem(itemId, item?.img);
+      setFoodItems(prev => prev.filter(item => item.id !== itemId));
+    } catch (error: any) {
+      setError(error.message || 'Failed to delete item');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSaveItem = () => {
+  const handleSaveItem = async () => {
     if (!formData.title || !formData.price) {
-      return; // Basic validation
+      setError('Please fill in all required fields');
+      return;
     }
 
-    const newItem: FoodItem = {
-      id: editingItem?.id || Date.now().toString(),
-      title: formData.title,
-      sub: formData.sub,
-      img: formData.img || "https://via.placeholder.com/400",
-      category: formData.category,
-      price: parseFloat(formData.price),
-      description: formData.description,
-      ingredients: formData.ingredients.split(",").map(i => i.trim()).filter(i => i),
-      extras: editingItem?.extras || [],
-    };
+    try {
+      setIsLoading(true);
+      setError(null);
 
-    if (editingItem) {
-      setFoodItems(prev => prev.map(item => item.id === editingItem.id ? newItem : item));
-    } else {
-      setFoodItems(prev => [...prev, newItem]);
+      const itemData = {
+        title: formData.title,
+        sub: formData.sub,
+        img: formData.img,
+        category: formData.category,
+        price: parseFloat(formData.price),
+        description: formData.description,
+        ingredients: formData.ingredients.split(",").map(i => i.trim()).filter(i => i),
+        extras: editingItem?.extras || [],
+        isAvailable: true,
+      };
+
+      if (editingItem) {
+        await foodService.updateFoodItem(editingItem.id, itemData, selectedImage || undefined);
+        const updatedItem = await foodService.getFoodItemById(editingItem.id);
+        if (updatedItem) {
+          setFoodItems(prev => prev.map(item => item.id === editingItem.id ? updatedItem : item));
+        }
+      } else {
+        const newItem = await foodService.createFoodItem(itemData, selectedImage || undefined);
+        setFoodItems(prev => [...prev, newItem]);
+      }
+
+      setShowAddModal(false);
+      setEditingItem(null);
+      setSelectedImage(null);
+    } catch (error: any) {
+      setError(error.message || 'Failed to save item');
+    } finally {
+      setIsLoading(false);
     }
-
-    setShowAddModal(false);
-    setEditingItem(null);
-    // TODO: Save to Firebase
   };
 
   return (
@@ -206,15 +264,27 @@ export default function AdminFoodManagementScreen({ navigation }: AdminFoodManag
         ))}
       </ScrollView>
 
+      {isLoading && <LoadingSpinner fullScreen message="Saving item..." />}
+      {error && (
+        <View style={{ position: "absolute", top: 60, left: 18, right: 18, zIndex: 1000 }}>
+          <ErrorMessage message={error} onDismiss={() => setError(null)} />
+        </View>
+      )}
+
       <CustomModal
         visible={showAddModal}
         onClose={() => {
-          setShowAddModal(false);
-          setEditingItem(null);
+          if (!isLoading) {
+            setShowAddModal(false);
+            setEditingItem(null);
+            setSelectedImage(null);
+            setError(null);
+          }
         }}
         title={editingItem ? "Edit Food Item" : "Add Food Item"}
       >
         <View style={{ gap: 12 }}>
+          {error && <ErrorMessage message={error} onDismiss={() => setError(null)} />}
           <Input
             icon="type"
             placeholder="Item Name"
@@ -227,12 +297,46 @@ export default function AdminFoodManagementScreen({ navigation }: AdminFoodManag
             value={formData.sub}
             onChangeText={(text) => setFormData({ ...formData, sub: text })}
           />
-          <Input
-            icon="image"
-            placeholder="Image URL"
-            value={formData.img}
-            onChangeText={(text) => setFormData({ ...formData, img: text })}
-          />
+          <View style={{ marginBottom: 12 }}>
+            <Text style={{ color: NG.c.text, fontWeight: "800", marginBottom: 8, fontSize: 13 }}>
+              Food Image
+            </Text>
+            {(selectedImage || formData.img) && (
+              <View style={{ marginBottom: 12 }}>
+                <Image
+                  source={{ uri: selectedImage || formData.img }}
+                  style={{ width: "100%", height: 200, borderRadius: 10, marginBottom: 8 }}
+                  resizeMode="cover"
+                />
+                {selectedImage && (
+                  <Pressable onPress={() => setSelectedImage(null)}>
+                    <Text style={{ color: "#ff3b30", fontWeight: "800", fontSize: 12, textAlign: "center" }}>
+                      Remove Image
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
+            )}
+            <Pressable onPress={pickImage}>
+              <View style={{
+                padding: 16,
+                borderRadius: 8,
+                borderWidth: 1,
+                borderColor: NG.c.stroke,
+                borderStyle: "dashed",
+                alignItems: "center",
+                backgroundColor: NG.c.panel,
+              }}>
+                <Feather name="upload" size={24} color={NG.c.gold} />
+                <Text style={{ color: NG.c.text, fontWeight: "800", marginTop: 8 }}>
+                  {selectedImage || formData.img ? "Change Image" : "Upload Image"}
+                </Text>
+                <Text style={{ color: NG.c.muted2, fontSize: 11, marginTop: 4 }}>
+                  Tap to select from gallery
+                </Text>
+              </View>
+            </Pressable>
+          </View>
           <View style={{ marginBottom: 12 }}>
             <Text style={{ color: NG.c.text, fontWeight: "800", marginBottom: 8, fontSize: 13 }}>
               Category
@@ -318,8 +422,10 @@ export default function AdminFoodManagementScreen({ navigation }: AdminFoodManag
             <PrimaryButton
               label={editingItem ? "Update Item" : "Add Item"}
               onPress={handleSaveItem}
+              disabled={isLoading}
             />
           </View>
+          {isLoading && <LoadingSpinner message="Saving..." />}
         </View>
       </CustomModal>
     </Screen>

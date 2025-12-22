@@ -111,6 +111,18 @@ export default function ProfileLoggedInScreen({ navigation, user, onLogout }: Pr
         <Text style={{ color: NG.c.muted }}>No payment methods saved</Text>
       </Card>
 
+      <View style={{ height: 18 }} />
+
+      <Pressable onPress={() => navigation?.navigate("OrderHistory")}>
+        <Card style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <Feather name="package" size={16} color={NG.c.gold} />
+            <Text style={{ color: NG.c.text, fontWeight: "800" }}>Order History</Text>
+          </View>
+          <Feather name="chevron-right" size={18} color={NG.c.muted} />
+        </Card>
+      </Pressable>
+
       <View style={{ flex: 1 }} />
 
       <GhostButton label="Logout" onPress={onLogout} />
