@@ -1,6 +1,6 @@
 import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { db, storage } from '../config/firebase';
+import { db } from '../config/firebase';
+import { imageStorageService } from './imageStorageService';
 import { FoodItem } from '../types';
 
 export const foodService = {
@@ -34,9 +34,9 @@ export const foodService = {
     try {
       let imageUrl = item.img;
 
-      // Upload image if provided
+      // Upload image if provided (Cloudinary - free, no credit card)
       if (imageUri) {
-        imageUrl = await this.uploadFoodImage(imageUri, `food_${Date.now()}`);
+        imageUrl = await imageStorageService.uploadImage(imageUri, `food_${Date.now()}`);
       }
 
       const newItem: Omit<FoodItem, 'id'> = {
@@ -62,9 +62,9 @@ export const foodService = {
         updatedAt: new Date(),
       };
 
-      // Upload new image if provided
+      // Upload new image if provided (Cloudinary)
       if (imageUri) {
-        updateData.img = await this.uploadFoodImage(imageUri, `food_${id}_${Date.now()}`);
+        updateData.img = await imageStorageService.uploadImage(imageUri, `food_${id}_${Date.now()}`);
       }
 
       const docRef = doc(db, 'foodItems', id);
@@ -74,34 +74,14 @@ export const foodService = {
     }
   },
 
-  async deleteFoodItem(id: string, imageUrl?: string): Promise<void> {
+  async deleteFoodItem(id: string, _imageUrl?: string): Promise<void> {
     try {
-      // Delete image from storage if exists
-      if (imageUrl) {
-        try {
-          const imageRef = ref(storage, imageUrl);
-          await deleteObject(imageRef);
-        } catch (error) {
-          console.warn('Failed to delete image from storage:', error);
-        }
-      }
-
+      // Image is stored on Cloudinary; we only delete the Firestore document.
+      // Optionally remove the asset from Cloudinary later via server/admin API.
       const docRef = doc(db, 'foodItems', id);
       await deleteDoc(docRef);
     } catch (error: any) {
       throw new Error(error.message || 'Failed to delete food item');
-    }
-  },
-
-  async uploadFoodImage(uri: string, filename: string): Promise<string> {
-    try {
-      const response = await fetch(uri);
-      const blob = await response.blob();
-      const imageRef = ref(storage, `food-images/${filename}`);
-      await uploadBytes(imageRef, blob);
-      return await getDownloadURL(imageRef);
-    } catch (error: any) {
-      throw new Error(error.message || 'Failed to upload image');
     }
   },
 };

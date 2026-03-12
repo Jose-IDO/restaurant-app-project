@@ -7,7 +7,8 @@ A React Native mobile application built with Expo for viewing food menus and pla
 - **React Native** with **Expo**
 - **TypeScript**
 - **Redux Toolkit** - State management
-- **Firebase** - Authentication, Firestore, Storage
+- **Firebase** - Authentication, Firestore (no credit card)
+- **Cloudinary** - Image storage (free, no credit card)
 - **React Navigation** - Navigation
 - **Stripe** - Payment processing (test mode)
 
@@ -52,19 +53,10 @@ restaurant-app/
 npm install
 ```
 
-2. Configure Firebase:
-   - Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
-   - Enable Authentication (Email/Password)
-   - Create Firestore database
-   - Enable Storage
-   - Copy your Firebase config to `src/config/firebase.ts`
-   - Set environment variables:
-     - `EXPO_PUBLIC_FIREBASE_API_KEY`
-     - `EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN`
-     - `EXPO_PUBLIC_FIREBASE_PROJECT_ID`
-     - `EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET`
-     - `EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
-     - `EXPO_PUBLIC_FIREBASE_APP_ID`
+2. Configure backend (all free, no credit card):
+   - **Firebase:** Auth + Firestore — see [FIREBASE_SETUP_GUIDE.md](FIREBASE_SETUP_GUIDE.md) or [QUICK_START_FIREBASE.md](QUICK_START_FIREBASE.md)
+   - **Cloudinary:** Image storage — see [FREE_IMAGE_STORAGE.md](FREE_IMAGE_STORAGE.md)
+   - Add to `.env`: Firebase (6 vars) + `EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME`, `EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET`
 
 3. Run the app:
 ```bash

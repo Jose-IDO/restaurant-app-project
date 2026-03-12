@@ -1,9 +1,8 @@
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
-import { getStorage, FirebaseStorage } from 'firebase/storage';
 
-// Firebase configuration - will be replaced with actual values from environment
+// Firebase configuration - Auth + Firestore only (images use Cloudinary - free, no credit card)
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || '',
   authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
@@ -13,23 +12,20 @@ const firebaseConfig = {
   appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || '',
 };
 
-// Initialize Firebase
+// Initialize Firebase (no Storage - we use Cloudinary for images)
 let app: FirebaseApp;
 let auth: Auth;
 let db: Firestore;
-let storage: FirebaseStorage;
 
 if (getApps().length === 0) {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   db = getFirestore(app);
-  storage = getStorage(app);
 } else {
-  app = getApps()[0];
+  app = getApps()[0] as FirebaseApp;
   auth = getAuth(app);
   db = getFirestore(app);
-  storage = getStorage(app);
 }
 
-export { app, auth, db, storage };
+export { app, auth, db };
 

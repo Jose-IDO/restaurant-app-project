@@ -1,6 +1,6 @@
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../config/firebase';
+import { db } from '../config/firebase';
+import { imageStorageService } from './imageStorageService';
 import { RestaurantInfo } from '../types';
 
 const RESTAURANT_INFO_ID = 'restaurant-info';
@@ -42,15 +42,7 @@ export const restaurantService = {
   },
 
   async uploadRestaurantImage(uri: string, filename: string): Promise<string> {
-    try {
-      const response = await fetch(uri);
-      const blob = await response.blob();
-      const imageRef = ref(storage, `restaurant-assets/${filename}`);
-      await uploadBytes(imageRef, blob);
-      return await getDownloadURL(imageRef);
-    } catch (error: any) {
-      throw new Error(error.message || 'Failed to upload image');
-    }
+    return imageStorageService.uploadImage(uri, `restaurant_${filename}`);
   },
 };
 

@@ -6,7 +6,11 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "web:port": "expo start --web --port 8082",
+    "web:8090": "expo start --web --port 8090",
+    "migrate:firebase": "npx ts-node scripts/migrate-to-firebase.ts",
+    "migrate:supabase": "npx ts-node scripts/migrate-to-supabase.ts"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -37,7 +41,10 @@
     "react-redux": "^9.2.0"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "@types/react": "~19.1.0",
+    "dotenv": "^16.4.5",
+    "ts-node": "^10.9.2",
     "typescript": "~5.9.2"
   },
   "private": true
