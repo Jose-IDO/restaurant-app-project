@@ -83,13 +83,18 @@ export default function ProfileLoggedInScreen({ navigation, user, onLogout }: Pr
         Personal Information
       </Text>
 
-      <Card>
-        <Row icon="user" label="Full Name" value={displayName} />
-        <Divider mt={12} mb={12} />
-        <Row icon="mail" label="Email" value={email} />
-        <Divider mt={12} mb={12} />
-        <Row icon="phone" label="Phone" value={phone} />
-      </Card>
+      <Pressable onPress={() => navigation?.navigate("EditProfile")}>
+        <Card style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+          <View style={{ flex: 1 }}>
+            <Row icon="user" label="Full Name" value={displayName} />
+            <Divider mt={12} mb={12} />
+            <Row icon="mail" label="Email" value={email} />
+            <Divider mt={12} mb={12} />
+            <Row icon="phone" label="Phone" value={phone} />
+          </View>
+          <Feather name="edit-2" size={18} color={NG.c.muted} />
+        </Card>
+      </Pressable>
 
       <View style={{ height: 18 }} />
 

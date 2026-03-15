@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, Alert } from "react-native";
+import { View, Text, Pressable, Alert, TextInput, ScrollView } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Screen, Card, PrimaryButton, NG } from "../../components/ui/noirGold.ui";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
@@ -9,6 +9,7 @@ import { stripeService } from "../../services/stripeService";
 import { orderService } from "../../services/orderService";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import ErrorMessage from "../../components/ErrorMessage";
+import CustomModal from "../../components/Modal";
 
 interface CheckoutScreenProps {
   navigation?: any;
@@ -22,8 +23,8 @@ interface CheckoutScreenProps {
 
 export default function CheckoutScreen({
   navigation,
-  deliveryAddress,
-  paymentMethod,
+  deliveryAddress: propAddress,
+  paymentMethod: propPayment,
   total: propTotal,
   onEditAddress,
   onEditPayment,
@@ -36,11 +37,18 @@ export default function CheckoutScreen({
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [overrideAddress, setOverrideAddress] = useState<{ street: string; city: string; zip: string } | null>(null);
+  const [overridePayment, setOverridePayment] = useState<string | null>(null);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [editAddressForm, setEditAddressForm] = useState({ street: "", city: "", zip: "" });
+  const [editPaymentLabel, setEditPaymentLabel] = useState("");
 
-  const displayAddress = deliveryAddress || userProfile?.address ? 
-    `${userProfile?.address?.street || ""}, ${userProfile?.address?.city || ""}, ${userProfile?.address?.zip || ""}`.trim() || "No address saved" :
-    "No address saved";
-  const displayPayment = paymentMethod || "No payment method saved";
+  const defaultAddressStr = userProfile?.address
+    ? `${userProfile.address.street || ""}, ${userProfile.address.city || ""}, ${userProfile.address.zip || ""}`.trim()
+    : "";
+  const displayAddress = propAddress || (overrideAddress ? `${overrideAddress.street}, ${overrideAddress.city}, ${overrideAddress.zip}`.trim() : null) || defaultAddressStr || "No address saved";
+  const displayPayment = propPayment || overridePayment || "No payment method saved";
   const displayTotal = propTotal || `R${cartTotal.toFixed(2)}`;
 
   const handlePlaceOrder = async () => {
@@ -117,6 +125,40 @@ export default function CheckoutScreen({
     }
   };
 
+  const handleOpenAddressModal = () => {
+    if (onEditAddress) {
+      onEditAddress();
+      return;
+    }
+    setEditAddressForm(overrideAddress || (userProfile?.address ? {
+      street: userProfile.address.street || "",
+      city: userProfile.address.city || "",
+      zip: userProfile.address.zip || "",
+    } : { street: "", city: "", zip: "" }));
+    setShowAddressModal(true);
+  };
+
+  const handleSaveAddress = () => {
+    if (editAddressForm.street.trim() && editAddressForm.city.trim() && editAddressForm.zip.trim()) {
+      setOverrideAddress({ ...editAddressForm });
+      setShowAddressModal(false);
+    }
+  };
+
+  const handleOpenPaymentModal = () => {
+    if (onEditPayment) {
+      onEditPayment();
+      return;
+    }
+    setEditPaymentLabel(overridePayment || "Test card •••• 4242");
+    setShowPaymentModal(true);
+  };
+
+  const handleSavePayment = () => {
+    setOverridePayment(editPaymentLabel.trim() || null);
+    setShowPaymentModal(false);
+  };
+
   return (
     <Screen>
       <Pressable onPress={() => navigation?.goBack()}>
@@ -129,6 +171,14 @@ export default function CheckoutScreen({
         Checkout
       </Text>
 
+      {!user && (
+        <Card style={{ marginTop: 18, backgroundColor: NG.c.panel2, borderColor: NG.c.gold }}>
+          <Text style={{ color: NG.c.text, fontWeight: "800", marginBottom: 10 }}>Sign in to place order</Text>
+          <Text style={{ color: NG.c.muted, marginBottom: 14 }}>You need to be logged in to complete your order.</Text>
+          <PrimaryButton label="Sign in" onPress={() => navigation?.navigate("Login")} />
+        </Card>
+      )}
+
       <View style={{ height: 18 }} />
 
       <Text style={{ color: NG.c.text, fontWeight: "900", marginBottom: 10 }}>Delivery Address</Text>
@@ -137,7 +187,7 @@ export default function CheckoutScreen({
           <Feather name="map-pin" size={16} color={NG.c.gold} />
           <Text style={{ color: NG.c.muted, fontWeight: "800", flex: 1 }}>{displayAddress}</Text>
         </View>
-        <Pressable onPress={onEditAddress}>
+        <Pressable onPress={handleOpenAddressModal}>
           <Feather name="edit-2" size={16} color="rgba(237,237,237,0.6)" />
         </Pressable>
       </Card>
@@ -145,11 +195,55 @@ export default function CheckoutScreen({
       <View style={{ height: 18 }} />
 
       <Text style={{ color: NG.c.text, fontWeight: "900", marginBottom: 10 }}>Payment Method</Text>
-      <Pressable onPress={onEditPayment}>
+      <Pressable onPress={handleOpenPaymentModal}>
         <Card>
           <Text style={{ color: NG.c.muted, fontWeight: "800" }}>{displayPayment}</Text>
         </Card>
       </Pressable>
+
+      <CustomModal visible={showAddressModal} onClose={() => setShowAddressModal(false)} title="Change address">
+        <ScrollView>
+          <Text style={{ color: NG.c.muted, marginBottom: 6 }}>Street</Text>
+          <TextInput
+            style={{ backgroundColor: NG.c.panel, borderRadius: 10, padding: 12, color: NG.c.text, marginBottom: 12, borderWidth: 1, borderColor: NG.c.stroke }}
+            placeholder="Street address"
+            placeholderTextColor={NG.c.muted2}
+            value={editAddressForm.street}
+            onChangeText={(t) => setEditAddressForm((p) => ({ ...p, street: t }))}
+          />
+          <Text style={{ color: NG.c.muted, marginBottom: 6 }}>City</Text>
+          <TextInput
+            style={{ backgroundColor: NG.c.panel, borderRadius: 10, padding: 12, color: NG.c.text, marginBottom: 12, borderWidth: 1, borderColor: NG.c.stroke }}
+            placeholder="City"
+            placeholderTextColor={NG.c.muted2}
+            value={editAddressForm.city}
+            onChangeText={(t) => setEditAddressForm((p) => ({ ...p, city: t }))}
+          />
+          <Text style={{ color: NG.c.muted, marginBottom: 6 }}>Postal code</Text>
+          <TextInput
+            style={{ backgroundColor: NG.c.panel, borderRadius: 10, padding: 12, color: NG.c.text, marginBottom: 16, borderWidth: 1, borderColor: NG.c.stroke }}
+            placeholder="Zip / Code"
+            placeholderTextColor={NG.c.muted2}
+            value={editAddressForm.zip}
+            onChangeText={(t) => setEditAddressForm((p) => ({ ...p, zip: t }))}
+          />
+          <PrimaryButton label="Use this address" onPress={handleSaveAddress} />
+        </ScrollView>
+      </CustomModal>
+
+      <CustomModal visible={showPaymentModal} onClose={() => setShowPaymentModal(false)} title="Payment method">
+        <ScrollView>
+          <Text style={{ color: NG.c.muted, marginBottom: 6 }}>Card (e.g. Test card •••• 4242)</Text>
+          <TextInput
+            style={{ backgroundColor: NG.c.panel, borderRadius: 10, padding: 12, color: NG.c.text, marginBottom: 16, borderWidth: 1, borderColor: NG.c.stroke }}
+            placeholder="Test card •••• 4242"
+            placeholderTextColor={NG.c.muted2}
+            value={editPaymentLabel}
+            onChangeText={setEditPaymentLabel}
+          />
+          <PrimaryButton label="Use this card" onPress={handleSavePayment} />
+        </ScrollView>
+      </CustomModal>
 
       {error && (
         <View style={{ marginBottom: 12 }}>
@@ -163,7 +257,7 @@ export default function CheckoutScreen({
         <PrimaryButton
           label={isProcessing || isOrderLoading ? "Processing..." : `Place Order - ${displayTotal}`}
           onPress={handlePlaceOrder}
-          disabled={isProcessing || isOrderLoading || cartItems.length === 0}
+          disabled={isProcessing || isOrderLoading || cartItems.length === 0 || !user}
         />
       </View>
       {(isProcessing || isOrderLoading) && <LoadingSpinner fullScreen message="Processing payment..." />}

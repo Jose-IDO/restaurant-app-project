@@ -184,15 +184,15 @@ export default function AdminRestaurantSettingsScreen({ navigation }: AdminResta
             Delivery Settings
           </Text>
           <Input
-            icon="dollar-sign"
-            placeholder="Delivery Fee"
+            icon="tag"
+            placeholder="Delivery Fee (R)"
             value={restaurantInfo.deliveryFee.toString()}
             onChangeText={(text) => updateField("deliveryFee", parseFloat(text) || 0)}
             keyboardType="decimal-pad"
           />
           <Input
             icon="shopping-bag"
-            placeholder="Minimum Order Amount"
+            placeholder="Minimum Order (R)"
             value={restaurantInfo.minimumOrder.toString()}
             onChangeText={(text) => updateField("minimumOrder", parseFloat(text) || 0)}
             keyboardType="decimal-pad"

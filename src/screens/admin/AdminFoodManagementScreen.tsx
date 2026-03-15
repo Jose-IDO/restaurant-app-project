@@ -377,8 +377,8 @@ export default function AdminFoodManagementScreen({ navigation }: AdminFoodManag
             </View>
           </View>
           <Input
-            icon="dollar-sign"
-            placeholder="Price"
+            icon="tag"
+            placeholder="Price (R)"
             value={formData.price}
             onChangeText={(text) => setFormData({ ...formData, price: text })}
             keyboardType="decimal-pad"

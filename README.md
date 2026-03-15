@@ -63,6 +63,25 @@ npm install
 npm start
 ```
 
+### Admin Login
+
+After setting a user as admin in Firestore (`users` → document → `isAdmin: true`), log in with that account to access the admin dashboard.
+
+**Admin account (Firestore `users` document):**
+
+| Field     | Value |
+|----------|--------|
+| Email    | `joeyidou1996@gmail.com` |
+| Name     | admin User |
+| UID      | `pTNs2XVPmQeJKBJTIMkCr4c6eo12` |
+| isAdmin  | `true` |
+| Phone    | 0814561259 |
+| Address  | 555 sunysude street, pretori, guateng 5673 |
+
+**Password:** `Test123`
+
+From the app: use **Login** (or **Admin Login** from Profile) and you’ll be taken to the admin flow when `isAdmin` is true.
+
 ## Features (To Be Implemented)
 
 ### User Features

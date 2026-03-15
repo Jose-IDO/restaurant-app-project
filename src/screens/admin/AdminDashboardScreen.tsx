@@ -90,7 +90,7 @@ export default function AdminDashboardScreen({ navigation }: AdminDashboardScree
 
           <Card style={{ flex: 1, minWidth: "45%" }}>
             <View style={{ alignItems: "center" }}>
-              <Feather name="dollar-sign" size={32} color={NG.c.gold} />
+              <Feather name="tag" size={32} color={NG.c.gold} />
               <Text style={{ color: NG.c.text, fontWeight: "900", fontSize: 20, marginTop: 10 }}>
                 R{dashboardStats.totalRevenue.toLocaleString()}
               </Text>

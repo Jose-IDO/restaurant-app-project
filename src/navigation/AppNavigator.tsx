@@ -19,6 +19,7 @@ import ProfileScreen from '../screens/main/ProfileScreen';
 import ProfileLoggedInScreen from '../screens/main/ProfileLoggedInScreen';
 import OrderPlacedModalScreen from '../screens/main/OrderPlacedModalScreen';
 import OrderHistoryScreen from '../screens/main/OrderHistoryScreen';
+import EditProfileScreen from '../screens/main/EditProfileScreen';
 
 // Admin Screens
 import AdminLoginScreen from '../screens/admin/AdminLoginScreen';
@@ -39,6 +40,7 @@ export type RootStackParamList = {
   Profile: undefined;
   OrderPlaced: undefined;
   OrderHistory: undefined;
+  EditProfile: undefined;
   AdminLogin: undefined;
   AdminMain: undefined;
   AdminRestaurantSettings: undefined;
@@ -199,6 +201,7 @@ const AppNavigator = () => {
             <Stack.Screen name="Checkout" component={CheckoutScreen} />
             <Stack.Screen name="OrderPlaced" component={OrderPlacedModalScreen} />
             <Stack.Screen name="OrderHistory" component={OrderHistoryScreen} />
+            <Stack.Screen name="EditProfile" component={EditProfileScreen} />
           </>
         ) : isAdmin ? (
           <>
@@ -213,6 +216,7 @@ const AppNavigator = () => {
             <Stack.Screen name="Checkout" component={CheckoutScreen} />
             <Stack.Screen name="OrderPlaced" component={OrderPlacedModalScreen} />
             <Stack.Screen name="OrderHistory" component={OrderHistoryScreen} />
+            <Stack.Screen name="EditProfile" component={EditProfileScreen} />
           </>
         )}
       </Stack.Navigator>

@@ -24,6 +24,8 @@ export interface RegisterData {
   city: string;
   state: string;
   zip: string;
+  cardLast4?: string;
+  cardExpiry?: string;
 }
 
 export default function RegisterScreen({ navigation, onRegister, onNavigateToLogin }: RegisterScreenProps) {
@@ -37,6 +39,8 @@ export default function RegisterScreen({ navigation, onRegister, onNavigateToLog
     city: "",
     state: "",
     zip: "",
+    cardLast4: "",
+    cardExpiry: "",
   });
 
   const dispatch = useAppDispatch();
@@ -254,6 +258,51 @@ export default function RegisterScreen({ navigation, onRegister, onNavigateToLog
               value={formData.zip}
               onChangeText={(text) => updateField("zip", text)}
               keyboardType="numeric"
+            />
+          </View>
+        </View>
+
+        <Text style={{ color: NG.c.gold, fontWeight: "800", marginTop: 20, marginBottom: 8 }}>Card details (for testing)</Text>
+        <Text style={{ color: NG.c.muted, fontSize: 12, marginBottom: 10 }}>Use fake card for testing, e.g. 4242 4242 4242 4242</Text>
+        <View style={{ flexDirection: "row", gap: 12 }}>
+          <View style={{ flex: 1 }}>
+            <TextInput
+              placeholder="Last 4 digits"
+              placeholderTextColor={NG.c.muted2}
+              style={{
+                backgroundColor: NG.c.panel2,
+                borderRadius: NG.r.md,
+                borderWidth: 1,
+                borderColor: NG.c.stroke,
+                paddingHorizontal: 12,
+                paddingVertical: 12,
+                color: NG.c.text,
+                fontWeight: "700",
+              }}
+              value={formData.cardLast4}
+              onChangeText={(text) => updateField("cardLast4", text.replace(/\D/g, "").slice(0, 4))}
+              keyboardType="numeric"
+              maxLength={4}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <TextInput
+              placeholder="MM/YY"
+              placeholderTextColor={NG.c.muted2}
+              style={{
+                backgroundColor: NG.c.panel2,
+                borderRadius: NG.r.md,
+                borderWidth: 1,
+                borderColor: NG.c.stroke,
+                paddingHorizontal: 12,
+                paddingVertical: 12,
+                color: NG.c.text,
+                fontWeight: "700",
+              }}
+              value={formData.cardExpiry}
+              onChangeText={(text) => updateField("cardExpiry", text.replace(/\D/g, "").slice(0, 4).replace(/(\d{2})(\d{0,2})/, "$1/$2").replace(/\/$/, ""))}
+              keyboardType="numeric"
+              maxLength={5}
             />
           </View>
         </View>
