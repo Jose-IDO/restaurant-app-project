@@ -1,139 +1,46 @@
-# Restaurant App - React Native Expo
+# Restaurant App (Bon Appetit)
 
-A React Native mobile application built with Expo for viewing food menus and placing orders.
+React Native (Expo) app for browsing a food menu and placing orders. Uses Firebase (Auth + Firestore), Cloudinary for images, and Stripe for payments (ZAR, test mode).
 
-## Tech Stack
+## Tech stack
 
-- **React Native** with **Expo**
-- **TypeScript**
-- **Redux Toolkit** - State management
-- **Firebase** - Authentication, Firestore (no credit card)
-- **Cloudinary** - Image storage (free, no credit card)
-- **React Navigation** - Navigation
-- **Stripe** - Payment processing (test mode)
+- **React Native** + **Expo** · **TypeScript** · **Redux Toolkit**
+- **Firebase** — Auth, Firestore
+- **Cloudinary** — Image storage
+- **Stripe** — Payments (test)
+- **React Navigation**
 
-## Project Structure
+## Setup
 
-```
-restaurant-app/
-├── src/
-│   ├── config/
-│   │   └── firebase.ts          # Firebase configuration
-│   ├── store/
-│   │   ├── index.ts             # Redux store setup
-│   │   ├── hooks.ts             # Typed Redux hooks
-│   │   └── slices/
-│   │       ├── authSlice.ts     # Authentication state
-│   │       ├── cartSlice.ts     # Shopping cart state
-│   │       ├── foodSlice.ts     # Food items state
-│   │       └── orderSlice.ts    # Orders state
-│   ├── services/
-│   │   ├── authService.ts       # Authentication service
-│   │   ├── foodService.ts       # Food items service
-│   │   └── orderService.ts      # Orders service
-│   └── types/
-│       └── index.ts             # TypeScript type definitions
-├── App.tsx                      # Main app component
-└── package.json
-```
+**Prerequisites:** Node.js 18+, npm, Expo CLI, Firebase project.
 
-## Setup Instructions
+1. **Install**
+   ```bash
+   npm install
+   ```
 
-### Prerequisites
+2. **Configure**
+   - Firebase (Auth + Firestore) and Cloudinary: add credentials to `.env` (Firebase 6 vars, `EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME`, `EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET`). Optional: Stripe `EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY` for payments.
 
-- Node.js (v18+)
-- npm or yarn
-- Expo CLI
-- Firebase project
+3. **Run**
+   ```bash
+   npm start
+   ```
+   Web: `npm run web`. Deploy web: `npm run deploy-hosting` (see [DEPLOY.md](DEPLOY.md)).
 
-### Installation
+## Admin login
 
-1. Install dependencies:
-```bash
-npm install
-```
+| Email | Password |
+|-------|----------|
+| `joeyidou1996@gmail.com` | `Test123` |
 
-2. Configure backend (all free, no credit card):
-   - **Firebase:** Auth + Firestore — see [FIREBASE_SETUP_GUIDE.md](FIREBASE_SETUP_GUIDE.md) or [QUICK_START_FIREBASE.md](QUICK_START_FIREBASE.md)
-   - **Cloudinary:** Image storage — see [FREE_IMAGE_STORAGE.md](FREE_IMAGE_STORAGE.md)
-   - Add to `.env`: Firebase (6 vars) + `EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME`, `EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET`
+Log in via **Login** or **Admin Login** from Profile to open the admin dashboard.
 
-3. Run the app:
-```bash
-npm start
-```
+**Admin:** Dashboard, food CRUD, restaurant settings, order history, analytics (real Firestore data).
 
-### Admin Login
+**User:** Register/login, profile (view & edit), browse menu by category, view item (sides, drink, extras, optional ingredients), cart (edit line options, quantity, remove), checkout (address, payment), order history.
 
-After setting a user as admin in Firestore (`users` → document → `isAdmin: true`), log in with that account to access the admin dashboard.
+## Branches
 
-**Admin account (Firestore `users` document):**
-
-| Field     | Value |
-|----------|--------|
-| Email    | `joeyidou1996@gmail.com` |
-| Name     | admin User |
-| UID      | `pTNs2XVPmQeJKBJTIMkCr4c6eo12` |
-| isAdmin  | `true` |
-| Phone    | 0814561259 |
-| Address  | 555 sunysude street, pretori, guateng 5673 |
-
-**Password:** `Test123`
-
-From the app: use **Login** (or **Admin Login** from Profile) and you’ll be taken to the admin flow when `isAdmin` is true.
-
-## Features (To Be Implemented)
-
-### User Features
-- User registration and login
-- Profile management
-- Browse food menu by categories
-- View food item details
-- Customize orders (sides, drinks, extras, ingredients)
-- Shopping cart management
-- Checkout and order placement
-- Order history
-
-### Admin Features
-- Separate admin login
-- Food item management (CRUD)
-- Order management
-- Analytics dashboard with charts
-- Restaurant information management
-
-## Git Workflow
-
-- **test_dev** - Development branch (push code here first)
-- **development-release** - Main branch (merge via PR after testing)
-
-## Development Status
-
-🚧 **Core Infrastructure Complete**
-- ✅ Redux store setup
-- ✅ Firebase configuration
-- ✅ TypeScript types
-- ✅ Service layer structure
-- ⏳ Screens (to be implemented)
-- ⏳ Navigation (to be implemented)
-- ⏳ UI Components (to be implemented)
-
-## Next Steps
-
-1. Set up Firebase project and configure credentials
-2. Implement authentication screens
-3. Build main navigation structure
-4. Create reusable UI components
-5. Implement food menu screens
-6. Build cart and checkout flow
-7. Add admin dashboard
-8. Integrate Stripe payment processing
-
-## Notes
-
-- This is a core initialization version
-- Screens and navigation will be added in subsequent commits
-- Design components from Lovable will be integrated
-- Aiming for 30+ commits over the development period
-
-
-
+- **test_dev** — development
+- **main** — main release

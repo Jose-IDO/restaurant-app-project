@@ -39,6 +39,11 @@ export const FOOD_ITEMS: FoodItem[] = [
     price: 15.99,
     description: "Crisp romaine lettuce with parmesan, croutons, and classic dressing",
     ingredients: ["Romaine Lettuce", "Parmesan", "Croutons", "Caesar Dressing", "Anchovies", "Lemon"],
+    optionalIngredients: [
+      { id: "anchovies", name: "Anchovies", defaultIncluded: true },
+      { id: "croutons", name: "Croutons", defaultIncluded: true },
+      { id: "extra-parmesan", name: "Extra parmesan", defaultIncluded: false },
+    ],
     extras: [
       { id: "1", name: "Grilled Chicken", price: 6.00 },
       { id: "2", name: "Extra Parmesan", price: 2.50 },
@@ -54,6 +59,20 @@ export const FOOD_ITEMS: FoodItem[] = [
     price: 75.99,
     description: "A5 Japanese Wagyu ribeye with roasted vegetables and red wine jus",
     ingredients: ["Wagyu Beef", "Roasted Vegetables", "Red Wine Jus", "Herb Butter", "Sea Salt"],
+    sideOptions: [
+      { id: "pap", name: "Pap" },
+      { id: "chips", name: "Chips" },
+      { id: "salad", name: "Salad" },
+    ],
+    drinkOptions: [
+      { id: "water", name: "Water", price: 0 },
+      { id: "juice", name: "House Juice", price: 0 },
+      { id: "wine", name: "Red Wine (glass)", price: 35.00 },
+    ],
+    optionalIngredients: [
+      { id: "herb-butter", name: "Herb Butter", defaultIncluded: true },
+      { id: "jus", name: "Red Wine Jus", defaultIncluded: true },
+    ],
     extras: [
       { id: "1", name: "Foie Gras Topping", price: 18.00 },
       { id: "2", name: "Truffle Sauce", price: 12.00 },
@@ -69,6 +88,19 @@ export const FOOD_ITEMS: FoodItem[] = [
     price: 42.99,
     description: "Fresh lobster in creamy sauce with gruyère cheese and herbs",
     ingredients: ["Fresh Lobster", "Gruyère Cheese", "Cream", "White Wine", "Herbs", "Breadcrumbs"],
+    sideOptions: [
+      { id: "chips", name: "Chips" },
+      { id: "salad", name: "Salad" },
+      { id: "veg", name: "Seasonal Veg" },
+    ],
+    drinkOptions: [
+      { id: "water", name: "Water", price: 0 },
+      { id: "white-wine", name: "White Wine (glass)", price: 32.00 },
+    ],
+    optionalIngredients: [
+      { id: "breadcrumbs", name: "Breadcrumbs", defaultIncluded: true },
+      { id: "extra-cheese", name: "Extra cheese", defaultIncluded: false },
+    ],
     extras: [
       { id: "1", name: "Extra Lobster", price: 22.00 },
       { id: "2", name: "Side Salad", price: 4.00 },
@@ -83,6 +115,20 @@ export const FOOD_ITEMS: FoodItem[] = [
     price: 36.99,
     description: "Slow-cooked duck leg with potato gratin and cherry sauce",
     ingredients: ["Duck Leg", "Potato Gratin", "Cherry Sauce", "Thyme", "Garlic", "Duck Fat"],
+    sideOptions: [
+      { id: "potato", name: "Potato Gratin" },
+      { id: "salad", name: "Salad" },
+      { id: "veg", name: "Green Beans" },
+    ],
+    drinkOptions: [
+      { id: "water", name: "Water", price: 0 },
+      { id: "juice", name: "Juice", price: 0 },
+      { id: "wine", name: "Red Wine (glass)", price: 35.00 },
+    ],
+    optionalIngredients: [
+      { id: "cherry-sauce", name: "Cherry sauce", defaultIncluded: true },
+      { id: "extra-garlic", name: "Extra garlic", defaultIncluded: false },
+    ],
     extras: [
       { id: "1", name: "Extra Duck Leg", price: 18.00 },
       { id: "2", name: "Green Beans", price: 3.50 },

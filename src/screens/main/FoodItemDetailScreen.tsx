@@ -31,6 +31,9 @@ export default function FoodItemDetailScreen({
   const [quantity, setQuantity] = useState(1);
   const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
   const [specialInstructions, setSpecialInstructions] = useState("");
+  const [selectedSides, setSelectedSides] = useState<string[]>([]);
+  const [selectedDrink, setSelectedDrink] = useState<{ id: string; name: string; price: number } | null>(null);
+  const [optionalIngredientIncluded, setOptionalIngredientIncluded] = useState<Record<string, boolean>>({});
 
   // Get item from route params or find by ID
   const routeParams = route?.params || {};
@@ -48,10 +51,16 @@ export default function FoodItemDetailScreen({
   }
 
   useEffect(() => {
-    // Reset state when item changes
     setQuantity(1);
     setSelectedExtras([]);
     setSpecialInstructions("");
+    setSelectedSides([]);
+    setSelectedDrink(null);
+    const defaults: Record<string, boolean> = {};
+    item?.optionalIngredients?.forEach(opt => {
+      defaults[opt.id] = opt.defaultIncluded !== false;
+    });
+    setOptionalIngredientIncluded(defaults);
   }, [item?.id]);
 
   if (!item) {
@@ -71,13 +80,31 @@ export default function FoodItemDetailScreen({
         total += extra.price;
       }
     });
-    return total * quantity;
+    const drinkAdd = selectedDrink?.price ?? 0;
+    return (total + drinkAdd) * quantity;
   };
 
   const handleAddToCart = () => {
     if (!item) return;
 
+    if (item.sideOptions && item.sideOptions.length > 0) {
+      if (selectedSides.length < 1 || selectedSides.length > 2) {
+        return; // validation: need 1 or 2 sides
+      }
+    }
+
     const selectedExtrasData = item.extras?.filter(extra => selectedExtras.includes(extra.id)) || [];
+    const sidesData = item.sideOptions && selectedSides.length > 0
+      ? selectedSides
+          .map(id => item!.sideOptions!.find(s => s.id === id))
+          .filter(Boolean) as Array<{ id: string; name: string }>
+      : undefined;
+    const removedIngredients = item.optionalIngredients
+      ?.filter(opt => opt.defaultIncluded && !optionalIngredientIncluded[opt.id])
+      .map(o => o.name);
+    const addedIngredients = item.optionalIngredients
+      ?.filter(opt => !opt.defaultIncluded && optionalIngredientIncluded[opt.id])
+      .map(o => o.name);
 
     dispatch(addToCart({
       id: `${item.id}_${Date.now()}`,
@@ -88,9 +115,29 @@ export default function FoodItemDetailScreen({
       quantity,
       selectedExtras: selectedExtrasData,
       specialInstructions: specialInstructions || undefined,
+      selectedSides: sidesData?.length ? sidesData : undefined,
+      selectedDrink: selectedDrink || undefined,
+      removedIngredients: removedIngredients?.length ? removedIngredients : undefined,
+      addedIngredients: addedIngredients?.length ? addedIngredients : undefined,
+      category: item.category,
     }));
 
     navigation?.goBack();
+  };
+
+  const toggleSide = (sideId: string) => {
+    if (!item?.sideOptions) return;
+    setSelectedSides(prev => {
+      if (prev.includes(sideId)) {
+        return prev.filter(id => id !== sideId);
+      }
+      if (prev.length >= 2) return prev;
+      return [...prev, sideId];
+    });
+  };
+
+  const toggleOptionalIngredient = (optId: string) => {
+    setOptionalIngredientIncluded(prev => ({ ...prev, [optId]: !prev[optId] }));
   };
 
   const toggleExtra = (extraId: string) => {
@@ -147,6 +194,86 @@ export default function FoodItemDetailScreen({
             </>
           )}
 
+          {item.sideOptions && item.sideOptions.length > 0 && (
+            <>
+              <Divider />
+              <Text style={{ color: NG.c.gold, fontWeight: "900", marginBottom: 10 }}>Choose your sides (pick 1 or 2)</Text>
+              <Text style={{ color: NG.c.muted, fontSize: 12, marginBottom: 10 }}>Price included</Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+                {item.sideOptions.map(side => (
+                  <Pressable key={side.id} onPress={() => toggleSide(side.id)}>
+                    <View style={{
+                      paddingHorizontal: 14,
+                      paddingVertical: 10,
+                      borderRadius: 8,
+                      borderWidth: 1,
+                      borderColor: selectedSides.includes(side.id) ? NG.c.gold : NG.c.stroke,
+                      backgroundColor: selectedSides.includes(side.id) ? NG.c.gold + "22" : "transparent",
+                    }}>
+                      <Text style={{ color: NG.c.text, fontWeight: "800" }}>{side.name}</Text>
+                    </View>
+                  </Pressable>
+                ))}
+              </View>
+            </>
+          )}
+
+          {item.drinkOptions && item.drinkOptions.length > 0 && (
+            <>
+              <Divider />
+              <Text style={{ color: NG.c.gold, fontWeight: "900", marginBottom: 10 }}>Drink</Text>
+              {item.drinkOptions.map(drink => (
+                <Pressable key={drink.id} onPress={() => setSelectedDrink(selectedDrink?.id === drink.id ? null : drink)}>
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 10 }}>
+                    <Text style={{ color: NG.c.text, fontWeight: "800" }}>{drink.name}</Text>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                      {drink.price > 0 && (
+                        <Text style={{ color: NG.c.gold, fontWeight: "800" }}>+ R{drink.price.toFixed(2)}</Text>
+                      )}
+                      <View style={{
+                        width: 18, height: 18,
+                        borderRadius: 9,
+                        borderWidth: 1,
+                        borderColor: NG.c.stroke,
+                        backgroundColor: selectedDrink?.id === drink.id ? NG.c.gold : "transparent",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}>
+                        {selectedDrink?.id === drink.id ? <Feather name="check" size={12} color="#151515" /> : null}
+                      </View>
+                    </View>
+                  </View>
+                </Pressable>
+              ))}
+            </>
+          )}
+
+          {item.optionalIngredients && item.optionalIngredients.length > 0 && (
+            <>
+              <Divider />
+              <Text style={{ color: NG.c.gold, fontWeight: "900", marginBottom: 10 }}>Customise</Text>
+              <Text style={{ color: NG.c.muted, fontSize: 12, marginBottom: 10 }}>Include or remove optional ingredients</Text>
+              {item.optionalIngredients.map(opt => (
+                <Pressable key={opt.id} onPress={() => toggleOptionalIngredient(opt.id)}>
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 8 }}>
+                    <Text style={{ color: NG.c.text, fontWeight: "800" }}>{opt.name}</Text>
+                    <View style={{
+                      width: 18, height: 18,
+                      borderRadius: 4,
+                      borderWidth: 1,
+                      borderColor: NG.c.stroke,
+                      backgroundColor: optionalIngredientIncluded[opt.id] !== false ? NG.c.gold : "transparent",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}>
+                      {optionalIngredientIncluded[opt.id] !== false ? <Feather name="check" size={14} color="#151515" /> : null}
+                    </View>
+                  </View>
+                </Pressable>
+              ))}
+            </>
+          )}
+
           {item.extras && item.extras.length > 0 && (
             <>
               <Divider />
@@ -194,10 +321,14 @@ export default function FoodItemDetailScreen({
       </ScrollView>
 
       <View style={{ position: "absolute", left: 18, right: 18, bottom: 20 }}>
+        {item.sideOptions && item.sideOptions.length > 0 && (selectedSides.length < 1 || selectedSides.length > 2) && (
+          <Text style={{ color: NG.c.muted, fontSize: 12, marginBottom: 8, textAlign: "center" }}>Please select 1 or 2 sides</Text>
+        )}
         <PrimaryButton
           label={`Add to Cart - R${calculateTotal().toFixed(2)}`}
           icon="shopping-bag"
           onPress={handleAddToCart}
+          disabled={!!(item.sideOptions?.length && (selectedSides.length < 1 || selectedSides.length > 2))}
         />
       </View>
     </Screen>

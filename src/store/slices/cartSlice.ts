@@ -13,6 +13,11 @@ export interface CartItem {
     price: number;
   }>;
   specialInstructions?: string;
+  selectedSides?: Array<{ id: string; name: string }>;
+  selectedDrink?: { id: string; name: string; price: number };
+  removedIngredients?: string[];
+  addedIngredients?: string[];
+  category?: string;
 }
 
 interface CartState {
@@ -26,7 +31,8 @@ const calculateTotals = (items: CartItem[], deliveryFee: number = 25) => {
   const subtotal = items.reduce((sum, item) => {
     const itemTotal = item.price * item.quantity;
     const extrasTotal = item.selectedExtras.reduce((extrasSum, extra) => extrasSum + extra.price, 0) * item.quantity;
-    return sum + itemTotal + extrasTotal;
+    const drinkTotal = (item.selectedDrink?.price ?? 0) * item.quantity;
+    return sum + itemTotal + extrasTotal + drinkTotal;
   }, 0);
   return {
     subtotal,
@@ -45,21 +51,37 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     addToCart: (state, action: PayloadAction<CartItem>) => {
+      const p = action.payload;
       const existingItemIndex = state.items.findIndex(
-        item => item.foodItemId === action.payload.foodItemId &&
-        JSON.stringify(item.selectedExtras) === JSON.stringify(action.payload.selectedExtras) &&
-        item.specialInstructions === action.payload.specialInstructions
+        item =>
+          item.foodItemId === p.foodItemId &&
+          JSON.stringify(item.selectedExtras) === JSON.stringify(p.selectedExtras) &&
+          item.specialInstructions === p.specialInstructions &&
+          JSON.stringify(item.selectedSides ?? []) === JSON.stringify(p.selectedSides ?? []) &&
+          (item.selectedDrink?.id ?? null) === (p.selectedDrink?.id ?? null) &&
+          JSON.stringify(item.removedIngredients ?? []) === JSON.stringify(p.removedIngredients ?? []) &&
+          JSON.stringify(item.addedIngredients ?? []) === JSON.stringify(p.addedIngredients ?? [])
       );
 
       if (existingItemIndex >= 0) {
-        state.items[existingItemIndex].quantity += action.payload.quantity;
+        state.items[existingItemIndex].quantity += p.quantity;
       } else {
-        state.items.push(action.payload);
+        state.items.push(p);
       }
 
       const totals = calculateTotals(state.items, state.deliveryFee);
       state.subtotal = totals.subtotal;
       state.total = totals.total;
+    },
+    updateCartItem: (state, action: PayloadAction<{ id: string; updates: Partial<CartItem> }>) => {
+      const { id, updates } = action.payload;
+      const idx = state.items.findIndex(i => i.id === id);
+      if (idx >= 0 && updates) {
+        state.items[idx] = { ...state.items[idx], ...updates };
+        const totals = calculateTotals(state.items, state.deliveryFee);
+        state.subtotal = totals.subtotal;
+        state.total = totals.total;
+      }
     },
     removeFromCart: (state, action: PayloadAction<string>) => {
       state.items = state.items.filter(item => item.id !== action.payload);
@@ -90,6 +112,6 @@ const cartSlice = createSlice({
   },
 });
 
-export const { addToCart, removeFromCart, updateQuantity, clearCart, setDeliveryFee } = cartSlice.actions;
+export const { addToCart, removeFromCart, updateQuantity, updateCartItem, clearCart, setDeliveryFee } = cartSlice.actions;
 export default cartSlice.reducer;
 

@@ -16,6 +16,12 @@ export interface FoodItem {
   description: string;
   ingredients: string[];
   extras?: Array<{ id: string; name: string; price: number }>;
+  /** Sides (e.g. pap, chips, salad). User picks 1 or 2; price included in item. */
+  sideOptions?: Array<{ id: string; name: string }>;
+  /** Drink options: price 0 = included, >0 = add-on in Rand. */
+  drinkOptions?: Array<{ id: string; name: string; price: number }>;
+  /** Optional ingredients user can remove or add (e.g. no lettuce, extra cheese). */
+  optionalIngredients?: Array<{ id: string; name: string; defaultIncluded?: boolean }>;
 }
 
 // Order Types
@@ -34,6 +40,11 @@ export interface OrderItem {
   price: number;
   extras?: Array<{ id: string; name: string; price: number }>;
   specialInstructions?: string;
+  selectedSides?: Array<{ id: string; name: string }>;
+  selectedDrink?: { id: string; name: string; price: number };
+  removedIngredients?: string[];
+  addedIngredients?: string[];
+  category?: FoodCategory;
 }
 
 export interface Order {

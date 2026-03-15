@@ -20,6 +20,7 @@ import ProfileLoggedInScreen from '../screens/main/ProfileLoggedInScreen';
 import OrderPlacedModalScreen from '../screens/main/OrderPlacedModalScreen';
 import OrderHistoryScreen from '../screens/main/OrderHistoryScreen';
 import EditProfileScreen from '../screens/main/EditProfileScreen';
+import EditCartItemScreen from '../screens/main/EditCartItemScreen';
 
 // Admin Screens
 import AdminLoginScreen from '../screens/admin/AdminLoginScreen';
@@ -35,6 +36,7 @@ export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   FoodItemDetail: { itemId: string };
+  EditCartItem: { cartItemId: string };
   Cart: undefined;
   Checkout: undefined;
   Profile: undefined;
@@ -198,6 +200,7 @@ const AppNavigator = () => {
             <Stack.Screen name="AdminRestaurantSettings" component={AdminRestaurantSettingsScreen} />
             <Stack.Screen name="Auth" component={AuthNavigator} />
             <Stack.Screen name="FoodItemDetail" component={FoodItemDetailScreen} />
+            <Stack.Screen name="EditCartItem" component={EditCartItemScreen} />
             <Stack.Screen name="Checkout" component={CheckoutScreen} />
             <Stack.Screen name="OrderPlaced" component={OrderPlacedModalScreen} />
             <Stack.Screen name="OrderHistory" component={OrderHistoryScreen} />
@@ -213,6 +216,7 @@ const AppNavigator = () => {
           <>
             <Stack.Screen name="Main" component={MainNavigator} />
             <Stack.Screen name="FoodItemDetail" component={FoodItemDetailScreen} />
+            <Stack.Screen name="EditCartItem" component={EditCartItemScreen} />
             <Stack.Screen name="Checkout" component={CheckoutScreen} />
             <Stack.Screen name="OrderPlaced" component={OrderPlacedModalScreen} />
             <Stack.Screen name="OrderHistory" component={OrderHistoryScreen} />

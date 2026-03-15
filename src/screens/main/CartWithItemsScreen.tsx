@@ -50,6 +50,7 @@ export default function CartWithItemsScreen({
             item={item}
             onRemove={() => handleRemoveItem(item.id)}
             onUpdateQuantity={(qty) => handleUpdateQuantity(item.id, qty)}
+            onEdit={() => navigation?.navigate("EditCartItem", { cartItemId: item.id })}
           />
           {index < items.length - 1 && <View style={{ height: 12 }} />}
         </React.Fragment>
@@ -90,16 +91,26 @@ function CartRow({
   item,
   onRemove,
   onUpdateQuantity,
+  onEdit,
 }: {
   item: CartItem;
   onRemove: () => void;
   onUpdateQuantity: (qty: number) => void;
+  onEdit?: () => void;
 }) {
   const hasImage = item.foodItemImage && item.foodItemImage.trim() !== "";
-  const itemTotal = (item.price * item.quantity) + (item.selectedExtras.reduce((sum, extra) => sum + extra.price, 0) * item.quantity);
-  const extrasText = item.selectedExtras.length > 0 
-    ? `Add-ons: ${item.selectedExtras.map(e => e.name).join(", ")}`
-    : "";
+  const drinkTotal = (item.selectedDrink?.price ?? 0) * item.quantity;
+  const itemTotal =
+    (item.price * item.quantity) +
+    item.selectedExtras.reduce((sum, extra) => sum + extra.price, 0) * item.quantity +
+    drinkTotal;
+  const parts: string[] = [];
+  if (item.selectedExtras.length > 0) parts.push(`Extras: ${item.selectedExtras.map(e => e.name).join(", ")}`);
+  if (item.selectedSides?.length) parts.push(`Sides: ${item.selectedSides.map(s => s.name).join(", ")}`);
+  if (item.selectedDrink) parts.push(`Drink: ${item.selectedDrink.name}`);
+  if (item.removedIngredients?.length) parts.push(`No: ${item.removedIngredients.join(", ")}`);
+  if (item.addedIngredients?.length) parts.push(`Extra: ${item.addedIngredients.join(", ")}`);
+  const optionsText = parts.join(" • ");
 
   return (
     <View style={{
@@ -122,13 +133,20 @@ function CartRow({
       <View style={{ flex: 1 }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
           <Text style={{ color: NG.c.text, fontWeight: "900" }}>{item.foodItemTitle}</Text>
-          <Pressable onPress={onRemove}>
-            <Feather name="trash-2" size={18} color="rgba(237,237,237,0.60)" />
-          </Pressable>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            {onEdit && (
+              <Pressable onPress={onEdit}>
+                <Feather name="edit-2" size={16} color={NG.c.gold} />
+              </Pressable>
+            )}
+            <Pressable onPress={onRemove}>
+              <Feather name="trash-2" size={18} color="rgba(237,237,237,0.60)" />
+            </Pressable>
+          </View>
         </View>
-        {extrasText ? (
-          <Text style={{ color: NG.c.muted, marginTop: 6, fontSize: 12 }} numberOfLines={1}>
-            {extrasText}
+        {optionsText ? (
+          <Text style={{ color: NG.c.muted, marginTop: 6, fontSize: 12 }} numberOfLines={2}>
+            {optionsText}
           </Text>
         ) : null}
         {item.specialInstructions && (
