@@ -49,7 +49,7 @@ export default function ProfileScreen({ navigation, isLoggedIn, onLoginPress }: 
 
           <View style={{ width: "70%", marginTop: 18 }}>
             <PrimaryButton
-              label="Login / Sign Up"
+              label="Login / Sign up"
               onPress={() => {
                 if (onLoginPress) {
                   onLoginPress();
@@ -59,20 +59,9 @@ export default function ProfileScreen({ navigation, isLoggedIn, onLoginPress }: 
               }}
             />
           </View>
-          <View style={{ width: "70%", marginTop: 12 }}>
-            <Pressable
-              onPress={() => navigation?.navigate("AdminLogin")}
-              style={{
-                paddingVertical: 12,
-                borderRadius: 999,
-                borderWidth: 1,
-                borderColor: NG.c.stroke,
-                alignItems: "center",
-              }}
-            >
-              <Text style={{ color: NG.c.text, fontWeight: "800" }}>Admin Login</Text>
-            </Pressable>
-          </View>
+          <Text style={{ color: NG.c.muted, fontSize: 12, marginTop: 14, textAlign: "center" }}>
+            Sign in to place orders and view history. Use the credentials in the README to access the admin dashboard.
+          </Text>
         </View>
       </Screen>
     );

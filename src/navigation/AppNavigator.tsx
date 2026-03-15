@@ -22,8 +22,7 @@ import OrderHistoryScreen from '../screens/main/OrderHistoryScreen';
 import EditProfileScreen from '../screens/main/EditProfileScreen';
 import EditCartItemScreen from '../screens/main/EditCartItemScreen';
 
-// Admin Screens
-import AdminLoginScreen from '../screens/admin/AdminLoginScreen';
+// Admin Screens (admin access only by logging in with admin credentials)
 import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
 import AdminFoodManagementScreen from '../screens/admin/AdminFoodManagementScreen';
 import AdminOrdersScreen from '../screens/admin/AdminOrdersScreen';
@@ -43,7 +42,6 @@ export type RootStackParamList = {
   OrderPlaced: undefined;
   OrderHistory: undefined;
   EditProfile: undefined;
-  AdminLogin: undefined;
   AdminMain: undefined;
   AdminRestaurantSettings: undefined;
 };
@@ -187,17 +185,17 @@ const AppNavigator = () => {
     isAdmin: state.auth.isAdmin,
   }));
 
+  // Guests start on Main (menu) and can browse; login required only to place order. Admin only via Login with admin credentials.
+  const initialRoute = !isAuthenticated ? "Main" : isAdmin ? "AdminMain" : "Main";
+
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={isAuthenticated ? "Main" : "Login"}>
+      <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={initialRoute}>
         {!isAuthenticated ? (
           <>
+            <Stack.Screen name="Main" component={MainNavigator} />
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Register" component={RegisterScreen} />
-            <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
-            <Stack.Screen name="Main" component={MainNavigator} />
-            <Stack.Screen name="AdminMain" component={AdminNavigator} />
-            <Stack.Screen name="AdminRestaurantSettings" component={AdminRestaurantSettingsScreen} />
             <Stack.Screen name="Auth" component={AuthNavigator} />
             <Stack.Screen name="FoodItemDetail" component={FoodItemDetailScreen} />
             <Stack.Screen name="EditCartItem" component={EditCartItemScreen} />
@@ -209,7 +207,6 @@ const AppNavigator = () => {
         ) : isAdmin ? (
           <>
             <Stack.Screen name="AdminMain" component={AdminNavigator} />
-            <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
             <Stack.Screen name="AdminRestaurantSettings" component={AdminRestaurantSettingsScreen} />
           </>
         ) : (
