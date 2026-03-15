@@ -11,7 +11,10 @@
     "web:port": "expo start --web --port 8082",
     "web:8090": "expo start --web --port 8090",
     "migrate:firebase": "npx ts-node scripts/migrate-to-firebase.ts",
-    "migrate:supabase": "npx ts-node scripts/migrate-to-supabase.ts"
+    "migrate:supabase": "npx ts-node scripts/migrate-to-supabase.ts",
+    "build:web": "npx expo export -p web",
+    "predeploy": "npx expo export -p web",
+    "deploy-hosting": "npm run predeploy && firebase deploy --only hosting"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
