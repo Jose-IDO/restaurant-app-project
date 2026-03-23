@@ -3,6 +3,7 @@ import { View, Text, Image, ScrollView, Pressable, Dimensions, TextInput, Alert 
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from 'expo-image-picker';
 import { Screen, PrimaryButton, Card, NG, Input } from "../../components/ui/noirGold.ui";
+import ScreenHeader from "../../components/ScreenHeader";
 import { FoodCategory, FoodItem } from "../../types";
 import CustomModal from "../../components/Modal";
 import LoadingSpinner from "../../components/LoadingSpinner";
@@ -165,23 +166,24 @@ export default function AdminFoodManagementScreen({ navigation }: AdminFoodManag
 
   return (
     <Screen>
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-        <Text style={{ color: NG.c.gold, fontWeight: "900", fontSize: 22, marginTop: 4 }}>
-          Food Management
-        </Text>
-        <Pressable onPress={handleAddItem}>
-          <View style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            backgroundColor: NG.c.gold,
-            alignItems: "center",
-            justifyContent: "center",
-          }}>
-            <Feather name="plus" size={20} color="#151515" />
-          </View>
-        </Pressable>
-      </View>
+      <ScreenHeader
+        title="Food Management"
+        onBack={() => navigation?.navigate("AdminDashboard")}
+        right={
+          <Pressable onPress={handleAddItem}>
+            <View style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: NG.c.gold,
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
+              <Feather name="plus" size={20} color="#151515" />
+            </View>
+          </Pressable>
+        }
+      />
 
       <View style={{ flexDirection: "row", gap: 10, marginTop: 18, flexWrap: "wrap" }}>
         <Pressable

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, ScrollView, Pressable, TextInput } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Screen, Card, NG, Input, PrimaryButton } from "../../components/ui/noirGold.ui";
+import ScreenHeader from "../../components/ScreenHeader";
 import { RestaurantInfo } from "../../types";
 
 interface AdminRestaurantSettingsScreenProps {
@@ -55,11 +56,12 @@ export default function AdminRestaurantSettingsScreen({ navigation }: AdminResta
 
   return (
     <Screen>
-      <Text style={{ color: NG.c.gold, fontWeight: "900", fontSize: 22, marginTop: 4 }}>
-        Restaurant Settings
-      </Text>
+      <ScreenHeader
+        title="Restaurant Settings"
+        onBack={() => navigation?.goBack()}
+      />
 
-      <ScrollView style={{ marginTop: 20 }} showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ marginTop: 12 }} showsVerticalScrollIndicator={false}>
         <Card style={{ marginBottom: 16 }}>
           <Text style={{ color: NG.c.gold, fontWeight: "900", marginBottom: 16, fontSize: 16 }}>
             Basic Information

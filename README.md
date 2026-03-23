@@ -1,68 +1,86 @@
-# Restaurant App (Bon Appetit)
+# Bon Appetit — Restaurant App
 
-React Native (Expo) app for browsing a food menu and placing orders. Uses Firebase (Auth + Firestore), Cloudinary for images, and Stripe for payments (ZAR, test mode).
+React Native (Expo) app: browse the menu, customize items, cart, checkout (ZAR), Firebase auth & orders, admin dashboard.  
 
-## Tech stack
+---
 
-- **React Native** + **Expo** · **TypeScript** · **Redux Toolkit**
-- **Firebase** — Auth, Firestore
-- **Cloudinary** — Image storage
-- **Stripe** — Payments (test)
-- **React Navigation**
+## Requirements met (what the app does)
 
-## Setup
+| Area | Met by |
+|------|--------|
+| **Menu & items** | Categories (Starters, Mains, Desserts, Drinks, Sides), item detail, images (Cloudinary when configured), prices in **ZAR**. |
+| **Customization** | Sides (where defined), drink options, optional ingredients, extras, quantity. |
+| **Cart** | Add/update/remove, **Edit** line items, delivery fee in total. |
+| **Checkout** | Address & payment fields, **guests** can browse/cart; **sign-in required** to place order; **return to checkout** after login/sign-up with cart kept. |
+| **Auth** | Register / login; session refreshes on use; **auto sign-out after 7 days** without opening the app. |
+| **Payments** | Stripe test flow on web; **simulated** on native EAS builds (no real Stripe SDK in build). |
+| **Admin** | Same login as customers; if user is admin in Firestore → dashboard: stats, **Food** CRUD, **Orders** (filters, stages, status updates), **Analytics** from real orders, **Restaurant settings** entry. |
+| **Hosting** | Web can be deployed to **Firebase Hosting** (`npm run deploy-hosting`). Native via **EAS Build** (see [DEPLOY.md](DEPLOY.md)). |
 
-**Prerequisites:** Node.js 18+, npm, Expo CLI, Firebase project.
+---
 
-1. **Install**
-   ```bash
-   npm install
-   ```
+## Install & run (developers)
 
-2. **Configure**
-   - Add a `.env` file with Firebase config (6 vars: `EXPO_PUBLIC_FIREBASE_*`), Cloudinary (`EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME`, `EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET`). Optional: `EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY` for payments.
+**Prerequisites:** Node.js 18+, npm.
 
-3. **Run**
-   ```bash
-   npm start
-   ```
-   - **Web:** `npm run web` — app runs at the URL shown (e.g. http://localhost:8081).
-   - **Deploy web:** `npm run deploy-hosting` (see [DEPLOY.md](DEPLOY.md)).
+```bash
+cd restaurant-app-project
+npm install
+```
+
+**Environment:** Create `.env` with `EXPO_PUBLIC_FIREBASE_*` (6), `EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME`, `EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET`. For **Android/iOS builds**, set the same variables in [Expo](https://expo.dev) → project → **Environment variables** (preview/production), then rebuild — otherwise login/orders show “App not configured”.
+
+```bash
+npm start          # Expo dev server
+npm run web        # Web in browser
+```
+
+**Web (live site):** build + deploy with `npm run deploy-hosting` (needs Firebase CLI & project).  
+
+**Phone (installable app):** use EAS, e.g. `npx eas build --platform android --profile preview`, then open the build URL on the device and install the APK. iOS: EAS with Apple credentials. Details: [DEPLOY.md](DEPLOY.md).
 
 ---
 
 ## How to use the app
 
-### As a guest (not logged in)
+### Install on your phone
 
-- The app opens on the **Menu** tab. You can use the app without signing in.
-- **Menu:** Browse food by category (Starters, Mains, Desserts, Drinks, Sides). Tap an item to open its details.
-- **Item details:** See name, description, price, image. Choose sides (1 or 2 where offered), drink, optional ingredients, extras, quantity. Tap **Add to Cart**.
-- **Cart:** View items, change quantity, remove items, or tap **Edit** on a line to change options. Tap **Proceed to Checkout**.
-- **Checkout:** You see the order summary, delivery address, and payment. To **place the order** you must be logged in. If you are not, a **Sign in to place order** prompt and **Sign in** button appear; tap it to go to Login.
-- **Profile:** Shows “Please Login” and a **Login / Sign up** button. Use it when you want to sign in or create an account.
+1. Install the **APK** (or **AAB** from Play-style flow) from your **EAS build** page on [expo.dev](https://expo.dev), **or**  
+2. Use **Expo Go** for development: `npm start`, scan the QR code (same network as PC).
 
-### As a customer (logged in)
+### Guest (not logged in)
 
-- **Profile** tab: **Login / Sign up** becomes your profile (name, email, phone, address). Tap the profile card to edit. **Order history** and **Logout** are available.
-- **Checkout:** You can set or change delivery address and payment method, then tap **Place Order** to pay and complete the order (Stripe test mode, ZAR).
-- You can still browse the menu and use the cart the same way as a guest.
+- Open app → **Menu** tab. Browse categories, open items, customize, **Add to Cart**.  
+- **Cart** → **Proceed to Checkout**. To pay you must sign in → tap **Go to sign in** / **Sign in to place order** → after login or sign-up you land back on **Checkout** with the same cart.  
+- **Profile** → **Login / Sign up** if you want to sign in earlier.
 
-### As an admin
+### Customer (logged in)
 
-- There is **no separate “Admin Login”** button. Log in with the **same Login** (Profile → **Login / Sign up**) using the admin account below.
-- If that user has admin rights in Firestore (`isAdmin: true`), after login you see the **admin dashboard** instead of the normal menu.
-- **Admin tabs:** Dashboard (overview, revenue), Food (add/edit/delete items), Orders (list and update status), Analytics (charts from Firestore). Restaurant settings are available from the dashboard.
+- **Profile:** your details, order history, logout.  
+- **Checkout:** set address & payment, **Place Order** (test payment flow).
 
-**Admin credentials (for testing):**
+### Admin (testing)
+
+- Use **Profile** → **Login / Sign up** (no separate admin button).  
+- Log in with the account below. The user must have **`isAdmin: true`** in Firestore to see the admin dashboard.
+
+**Admin credentials**
 
 | Email | Password |
 |-------|----------|
-| `joeyidou1996@gmail.com` | `Test123` |
+| `joeyidowu1996@gmail.com` | `Test1234` |
+
+- After login: **Dashboard**, **Food**, **Orders**, **Analytics**; **Settings** from the dashboard.  
+- Manage orders (including stages / status) under **Orders**.
 
 ---
 
-## Branches
+## How to test (quick checklist)
 
-- **test_dev** — development
-- **main** — main release
+1. **Guest path:** Menu → item → add to cart → checkout → confirm you’re asked to sign in → sign in → still on checkout with cart → place order (logged in).  
+2. **Register:** Create account; optional fields can be left empty except required ones shown on the form.  
+3. **Admin:** Log in with the admin table above → confirm dashboard loads → open Orders/Food/Analytics.  
+4. **Web:** `npm run web`, repeat browse + checkout smoke test.  
+5. **Native build:** After EAS install, confirm app opens (not black screen) and, if env vars are set on EAS, login and orders work.
+
+For EAS builds, set the same `EXPO_PUBLIC_*` variables in [Expo](https://expo.dev) → your project → **Environment variables** for the build profile, then rebuild.

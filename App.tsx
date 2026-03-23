@@ -1,14 +1,16 @@
 import 'react-native-gesture-handler';
 import React, { useEffect, Component } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform, AppState, AppStateStatus } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Provider, useDispatch } from 'react-redux';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { onAuthStateChanged } from 'firebase/auth';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { store } from './src/store';
 import { setUser, setUserProfile, setLoading } from './src/store/slices/authSlice';
 import { auth } from './src/config/firebase';
 import { authService } from './src/services/authService';
+import { sessionActivityService } from './src/services/sessionActivityService';
 import AppNavigator from './src/navigation/AppNavigator';
 
 class ErrorBoundary extends Component<
@@ -38,8 +40,29 @@ function AppContent() {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    if (Platform.OS === 'android') {
+      try {
+        const NavigationBar = require('expo-navigation-bar');
+        NavigationBar.setVisibilityAsync('hidden').catch(() => {});
+      } catch (_) {}
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!auth) {
+      dispatch(setLoading(false));
+      return;
+    }
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        const inactiveTooLong = await sessionActivityService.isInactiveBeyondThreshold();
+        if (inactiveTooLong) {
+          await sessionActivityService.clearActivity();
+          await signOut(auth);
+          dispatch(setLoading(false));
+          return;
+        }
+        await sessionActivityService.recordActivity();
         dispatch(setUser(user));
         try {
           const profile = await authService.getUserProfile(user.uid);
@@ -54,13 +77,26 @@ function AppContent() {
       dispatch(setLoading(false));
     });
     return () => unsubscribe();
+  }, [dispatch]);
+
+  /** Reset inactivity timer whenever the app becomes active while logged in. */
+  useEffect(() => {
+    const sub = (state: AppStateStatus) => {
+      if (state === 'active' && auth?.currentUser) {
+        sessionActivityService.recordActivity();
+      }
+    };
+    const subscription = AppState.addEventListener('change', sub);
+    return () => subscription.remove();
   }, []);
 
   return (
-    <GestureHandlerRootView style={styles.container}>
-      <AppNavigator />
-      <StatusBar style="light" />
-    </GestureHandlerRootView>
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={styles.container}>
+        <AppNavigator />
+        <StatusBar style="light" />
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }
 

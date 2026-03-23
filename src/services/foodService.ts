@@ -2,35 +2,39 @@ import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc, query, orderBy 
 import { db } from '../config/firebase';
 import { imageStorageService } from './imageStorageService';
 import { FoodItem } from '../types';
+import { FOOD_ITEMS } from '../data/foodItems';
 
 export const foodService = {
   async getAllFoodItems(): Promise<FoodItem[]> {
+    if (!db) return [...FOOD_ITEMS];
     try {
       const q = query(collection(db, 'foodItems'), orderBy('createdAt', 'desc'));
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
+      return querySnapshot.docs.map(d => ({
+        id: d.id,
+        ...d.data(),
       })) as FoodItem[];
     } catch (error: any) {
-      throw new Error(error.message || 'Failed to fetch food items');
+      return [...FOOD_ITEMS];
     }
   },
 
   async getFoodItemById(id: string): Promise<FoodItem | null> {
+    if (!db) return FOOD_ITEMS.find(i => i.id === id) || null;
     try {
       const docRef = doc(db, 'foodItems', id);
       const docSnap = await docRef.get();
       if (docSnap.exists()) {
         return { id: docSnap.id, ...docSnap.data() } as FoodItem;
       }
-      return null;
+      return FOOD_ITEMS.find(i => i.id === id) || null;
     } catch (error: any) {
-      throw new Error(error.message || 'Failed to fetch food item');
+      return FOOD_ITEMS.find(i => i.id === id) || null;
     }
   },
 
   async createFoodItem(item: Omit<FoodItem, 'id'>, imageUri?: string): Promise<FoodItem> {
+    if (!db) throw new Error('Firebase not configured');
     try {
       let imageUrl = item.img;
 
@@ -56,6 +60,7 @@ export const foodService = {
   },
 
   async updateFoodItem(id: string, updates: Partial<FoodItem>, imageUri?: string): Promise<void> {
+    if (!db) throw new Error('Firebase not configured');
     try {
       const updateData: any = {
         ...updates,
@@ -75,6 +80,7 @@ export const foodService = {
   },
 
   async deleteFoodItem(id: string, _imageUrl?: string): Promise<void> {
+    if (!db) throw new Error('Firebase not configured');
     try {
       // Image is stored on Cloudinary; we only delete the Firestore document.
       // Optionally remove the asset from Cloudinary later via server/admin API.

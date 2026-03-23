@@ -1,7 +1,9 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { NG } from '../components/ui/noirGold.ui';
 import { useAppSelector } from '../store/hooks';
@@ -32,8 +34,8 @@ import AdminRestaurantSettingsScreen from '../screens/admin/AdminRestaurantSetti
 export type RootStackParamList = {
   Auth: undefined;
   Main: undefined;
-  Login: undefined;
-  Register: undefined;
+  Login: { returnTo?: 'Checkout' } | undefined;
+  Register: { returnTo?: 'Checkout' } | undefined;
   FoodItemDetail: { itemId: string };
   EditCartItem: { cartItemId: string };
   Cart: undefined;
@@ -77,7 +79,16 @@ const AuthNavigator = () => (
   </AuthStack.Navigator>
 );
 
-const MainNavigator = () => (
+const TAB_BAR_BASE_HEIGHT = 70;
+const TAB_BAR_PADDING_BOTTOM = 18;
+
+const MainNavigator = () => {
+  const insets = useSafeAreaInsets();
+  const bottomInset = Platform.OS === 'android' ? insets.bottom : 0;
+  const tabBarHeight = TAB_BAR_BASE_HEIGHT + bottomInset;
+  const paddingBottom = TAB_BAR_PADDING_BOTTOM + bottomInset;
+
+  return (
   <MainTab.Navigator
     screenOptions={{
       headerShown: false,
@@ -86,8 +97,8 @@ const MainNavigator = () => (
         borderTopWidth: 1,
         borderTopColor: NG.c.stroke,
         paddingTop: 10,
-        paddingBottom: 18,
-        height: 70,
+        paddingBottom,
+        height: tabBarHeight,
       },
       tabBarActiveTintColor: NG.c.gold,
       tabBarInactiveTintColor: 'rgba(237,237,237,0.55)',
@@ -122,9 +133,16 @@ const MainNavigator = () => (
       }}
     />
   </MainTab.Navigator>
-);
+  );
+};
 
-const AdminNavigator = () => (
+const AdminNavigator = () => {
+  const insets = useSafeAreaInsets();
+  const bottomInset = Platform.OS === 'android' ? insets.bottom : 0;
+  const tabBarHeight = TAB_BAR_BASE_HEIGHT + bottomInset;
+  const paddingBottom = TAB_BAR_PADDING_BOTTOM + bottomInset;
+
+  return (
   <AdminTab.Navigator
     screenOptions={{
       headerShown: false,
@@ -133,8 +151,8 @@ const AdminNavigator = () => (
         borderTopWidth: 1,
         borderTopColor: NG.c.stroke,
         paddingTop: 10,
-        paddingBottom: 18,
-        height: 70,
+        paddingBottom,
+        height: tabBarHeight,
       },
       tabBarActiveTintColor: NG.c.gold,
       tabBarInactiveTintColor: 'rgba(237,237,237,0.55)',
@@ -177,7 +195,8 @@ const AdminNavigator = () => (
       }}
     />
   </AdminTab.Navigator>
-);
+  );
+};
 
 const AppNavigator = () => {
   const { isAuthenticated, isAdmin } = useAppSelector(state => ({

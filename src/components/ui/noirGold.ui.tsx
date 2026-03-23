@@ -220,6 +220,56 @@ export function Input({
   );
 }
 
+/** Password field with show/hide toggle (eye icon). */
+export function PasswordInput({
+  placeholder,
+  value,
+  onChangeText,
+  width,
+}: {
+  placeholder: string;
+  value?: string;
+  onChangeText?: (text: string) => void;
+  width?: any;
+}) {
+  const [visible, setVisible] = React.useState(false);
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
+        backgroundColor: NG.c.panel2,
+        borderRadius: NG.r.md,
+        borderWidth: 1,
+        borderColor: NG.c.stroke,
+        paddingHorizontal: 12,
+        paddingVertical: 12,
+        width: width ?? "100%",
+        marginBottom: 12,
+      }}
+    >
+      <Feather name="lock" size={16} color={NG.c.gold} />
+      <TextInput
+        placeholder={placeholder}
+        placeholderTextColor={NG.c.muted2}
+        style={{ flex: 1, color: NG.c.text, fontWeight: "700" }}
+        value={value}
+        onChangeText={onChangeText}
+        secureTextEntry={!visible}
+        autoCapitalize="none"
+      />
+      <Pressable
+        onPress={() => setVisible(v => !v)}
+        hitSlop={8}
+        accessibilityLabel={visible ? "Hide password" : "Show password"}
+      >
+        <Feather name={visible ? "eye-off" : "eye"} size={20} color={NG.c.muted} />
+      </Pressable>
+    </View>
+  );
+}
+
 export function Divider({ mt = 16, mb = 16 }: { mt?: number; mb?: number }) {
   return <View style={{ height: 1, backgroundColor: NG.c.stroke, marginTop: mt, marginBottom: mb }} />;
 }

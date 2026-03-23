@@ -4,6 +4,7 @@ import { Order, OrderStatus } from '../types';
 
 export const orderService = {
   async createOrder(order: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>): Promise<Order> {
+    if (!db) throw new Error('App not configured. Add Firebase credentials.');
     try {
       const newOrder: Omit<Order, 'id'> = {
         ...order,
@@ -21,6 +22,7 @@ export const orderService = {
   },
 
   async getUserOrders(userId: string): Promise<Order[]> {
+    if (!db) return [];
     try {
       const q = query(
         collection(db, 'orders'),
@@ -38,6 +40,7 @@ export const orderService = {
   },
 
   async getAllOrders(): Promise<Order[]> {
+    if (!db) return [];
     try {
       const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
       const querySnapshot = await getDocs(q);
@@ -51,6 +54,7 @@ export const orderService = {
   },
 
   async getOrderById(orderId: string): Promise<Order | null> {
+    if (!db) return null;
     try {
       const docRef = doc(db, 'orders', orderId);
       const docSnap = await docRef.get();
@@ -64,6 +68,7 @@ export const orderService = {
   },
 
   async updateOrderStatus(orderId: string, status: OrderStatus): Promise<void> {
+    if (!db) throw new Error('App not configured.');
     try {
       const docRef = doc(db, 'orders', orderId);
       await updateDoc(docRef, {

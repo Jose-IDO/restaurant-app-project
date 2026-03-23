@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, Alert, TextInput, ScrollView } from "react-native";
+import { View, Text, Pressable, TextInput, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Screen, Card, PrimaryButton, NG } from "../../components/ui/noirGold.ui";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
@@ -51,20 +51,21 @@ export default function CheckoutScreen({
   const displayPayment = propPayment || overridePayment || "No payment method saved";
   const displayTotal = propTotal || `R${cartTotal.toFixed(2)}`;
 
+  const goToLogin = () => {
+    navigation?.navigate("Login", { returnTo: "Checkout" });
+  };
+
   const handlePlaceOrder = async () => {
     if (!user || !userProfile) {
-      Alert.alert("Login Required", "Please login to place an order");
-      navigation?.navigate("Login");
+      goToLogin();
       return;
     }
 
     if (cartItems.length === 0) {
-      Alert.alert("Empty Cart", "Your cart is empty");
       return;
     }
 
     if (displayPayment === "No payment method saved") {
-      Alert.alert("Payment Required", "Please select a payment method");
       return;
     }
 
@@ -73,17 +74,13 @@ export default function CheckoutScreen({
       dispatch(setLoading(true));
       setError(null);
 
-      // Extract numeric value from total string (e.g., "R381.00" -> 38100 cents)
-      const totalAmount = parseFloat(displayTotal.replace(/[^0-9.]/g, '')) * 100; // Convert to cents
+      const totalAmount = parseFloat(displayTotal.replace(/[^0-9.]/g, "")) * 100;
 
-      // Create payment intent
-      const clientSecret = await stripeService.createPaymentIntent(totalAmount, 'zar');
+      const clientSecret = await stripeService.createPaymentIntent(totalAmount, "zar");
 
-      // Process payment
       const result = await stripeService.processPayment(clientSecret);
 
       if (result.success) {
-        // Create order
         const order = await orderService.createOrder({
           userId: user.uid,
           customerName: userProfile.name,
@@ -122,8 +119,8 @@ export default function CheckoutScreen({
       } else {
         setError("Payment failed. Please try again.");
       }
-    } catch (error: any) {
-      setError(error.message || "Failed to process payment");
+    } catch (err: any) {
+      setError(err.message || "Failed to process payment");
     } finally {
       setIsProcessing(false);
       dispatch(setLoading(false));
@@ -164,50 +161,87 @@ export default function CheckoutScreen({
     setShowPaymentModal(false);
   };
 
+  const primaryLabel = !user
+    ? "Sign in to place order"
+    : isProcessing || isOrderLoading
+      ? "Processing..."
+      : `Place Order - ${displayTotal}`;
+
   return (
     <Screen>
-      <Pressable onPress={() => navigation?.goBack()}>
-        <View style={{ width: 40, height: 40, justifyContent: "center" }}>
-          <Feather name="arrow-left" size={24} color={NG.c.text} />
-        </View>
-      </Pressable>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 56 : 0}
+      >
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 32 }}
+        >
+          <Pressable onPress={() => navigation?.goBack()}>
+            <View style={{ width: 40, height: 40, justifyContent: "center" }}>
+              <Feather name="arrow-left" size={24} color={NG.c.text} />
+            </View>
+          </Pressable>
 
-      <Text style={{ color: NG.c.gold, fontWeight: "900", fontSize: 22, marginTop: 6 }}>
-        Checkout
-      </Text>
+          <Text style={{ color: NG.c.gold, fontWeight: "900", fontSize: 22, marginTop: 6 }}>
+            Checkout
+          </Text>
 
-      {!user && (
-        <Card style={{ marginTop: 18, backgroundColor: NG.c.panel2, borderColor: NG.c.gold }}>
-          <Text style={{ color: NG.c.text, fontWeight: "800", marginBottom: 10 }}>Sign in to place order</Text>
-          <Text style={{ color: NG.c.muted, marginBottom: 14 }}>You need to be logged in to complete your order.</Text>
-          <PrimaryButton label="Sign in" onPress={() => navigation?.navigate("Login")} />
-        </Card>
-      )}
+          {!user && (
+            <Card style={{ marginTop: 18, backgroundColor: NG.c.panel2, borderColor: NG.c.gold }}>
+              <Text style={{ color: NG.c.text, fontWeight: "800", marginBottom: 10 }}>Sign in to place order</Text>
+              <Text style={{ color: NG.c.muted, marginBottom: 14 }}>
+                Sign in or create an account to complete your order. Your cart is saved — after logging in you can continue here.
+              </Text>
+              <PrimaryButton label="Go to sign in" onPress={goToLogin} />
+            </Card>
+          )}
 
-      <View style={{ height: 18 }} />
+          <View style={{ height: 18 }} />
 
-      <Text style={{ color: NG.c.text, fontWeight: "900", marginBottom: 10 }}>Delivery Address</Text>
-      <Card style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1 }}>
-          <Feather name="map-pin" size={16} color={NG.c.gold} />
-          <Text style={{ color: NG.c.muted, fontWeight: "800", flex: 1 }}>{displayAddress}</Text>
-        </View>
-        <Pressable onPress={handleOpenAddressModal}>
-          <Feather name="edit-2" size={16} color="rgba(237,237,237,0.6)" />
-        </Pressable>
-      </Card>
+          <Text style={{ color: NG.c.text, fontWeight: "900", marginBottom: 10 }}>Delivery Address</Text>
+          <Card style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1 }}>
+              <Feather name="map-pin" size={16} color={NG.c.gold} />
+              <Text style={{ color: NG.c.muted, fontWeight: "800", flex: 1 }}>{displayAddress}</Text>
+            </View>
+            <Pressable onPress={handleOpenAddressModal}>
+              <Feather name="edit-2" size={16} color="rgba(237,237,237,0.6)" />
+            </Pressable>
+          </Card>
 
-      <View style={{ height: 18 }} />
+          <View style={{ height: 18 }} />
 
-      <Text style={{ color: NG.c.text, fontWeight: "900", marginBottom: 10 }}>Payment Method</Text>
-      <Pressable onPress={handleOpenPaymentModal}>
-        <Card>
-          <Text style={{ color: NG.c.muted, fontWeight: "800" }}>{displayPayment}</Text>
-        </Card>
-      </Pressable>
+          <Text style={{ color: NG.c.text, fontWeight: "900", marginBottom: 10 }}>Payment Method</Text>
+          <Pressable onPress={handleOpenPaymentModal}>
+            <Card>
+              <Text style={{ color: NG.c.muted, fontWeight: "800" }}>{displayPayment}</Text>
+            </Card>
+          </Pressable>
+
+          {error ? (
+            <View style={{ marginTop: 12, marginBottom: 8 }}>
+              <ErrorMessage message={error} onDismiss={() => setError(null)} />
+            </View>
+          ) : null}
+
+          <View style={{ height: 24 }} />
+
+          <PrimaryButton
+            label={primaryLabel}
+            onPress={!user ? goToLogin : handlePlaceOrder}
+            disabled={
+              cartItems.length === 0 ||
+              (Boolean(user) && (isProcessing || isOrderLoading || displayPayment === "No payment method saved"))
+            }
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       <CustomModal visible={showAddressModal} onClose={() => setShowAddressModal(false)} title="Change address">
-        <ScrollView>
+        <ScrollView keyboardShouldPersistTaps="handled">
           <Text style={{ color: NG.c.muted, marginBottom: 6 }}>Street</Text>
           <TextInput
             style={{ backgroundColor: NG.c.panel, borderRadius: 10, padding: 12, color: NG.c.text, marginBottom: 12, borderWidth: 1, borderColor: NG.c.stroke }}
@@ -237,7 +271,7 @@ export default function CheckoutScreen({
       </CustomModal>
 
       <CustomModal visible={showPaymentModal} onClose={() => setShowPaymentModal(false)} title="Payment method">
-        <ScrollView>
+        <ScrollView keyboardShouldPersistTaps="handled">
           <Text style={{ color: NG.c.muted, marginBottom: 6 }}>Card (e.g. Test card •••• 4242)</Text>
           <TextInput
             style={{ backgroundColor: NG.c.panel, borderRadius: 10, padding: 12, color: NG.c.text, marginBottom: 16, borderWidth: 1, borderColor: NG.c.stroke }}
@@ -250,25 +284,7 @@ export default function CheckoutScreen({
         </ScrollView>
       </CustomModal>
 
-      {error && (
-        <View style={{ marginBottom: 12 }}>
-          <ErrorMessage message={error} onDismiss={() => setError(null)} />
-        </View>
-      )}
-
-      <View style={{ flex: 1 }} />
-
-      <View style={{ marginBottom: 18 }}>
-        <PrimaryButton
-          label={isProcessing || isOrderLoading ? "Processing..." : `Place Order - ${displayTotal}`}
-          onPress={handlePlaceOrder}
-          disabled={isProcessing || isOrderLoading || cartItems.length === 0 || !user}
-        />
-      </View>
-      {(isProcessing || isOrderLoading) && <LoadingSpinner fullScreen message="Processing payment..." />}
+      {(isProcessing || isOrderLoading) && user ? <LoadingSpinner fullScreen message="Processing payment..." /> : null}
     </Screen>
   );
 }
-
-
-

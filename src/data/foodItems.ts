@@ -1,19 +1,22 @@
 import { FoodCategory, FoodItem } from '../types';
 
+/**
+ * Prices in ZAR — aligned with mid–upper fine dining / steakhouse ranges in South Africa (approx. 2024–2025).
+ * Starters ~R85–220, mains ~R220–920, desserts ~R75–145, drinks ~R35–130, sides ~R55–95.
+ */
 export const FOOD_ITEMS: FoodItem[] = [
-  // Starters (3 items)
   {
     id: "1",
     title: "Seared Scallops",
     sub: "Pan-seared scallops with cauliflower purée and truffle oil",
-    img: "", // Image will be uploaded via admin panel
+    img: "",
     category: "Starters",
-    price: 22.99,
+    price: 168,
     description: "Pan-seared scallops with cauliflower purée and truffle oil",
     ingredients: ["Fresh Scallops", "Cauliflower", "Truffle Oil", "Lemon", "Herbs"],
     extras: [
-      { id: "1", name: "Extra Scallops", price: 12.00 },
-      { id: "2", name: "Caviar Topping", price: 15.00 },
+      { id: "1", name: "Extra Scallops", price: 85 },
+      { id: "2", name: "Caviar Topping", price: 120 },
     ],
   },
   {
@@ -22,12 +25,12 @@ export const FOOD_ITEMS: FoodItem[] = [
     sub: "Fresh oysters baked with spinach, parmesan, and herbs",
     img: "",
     category: "Starters",
-    price: 18.99,
+    price: 145,
     description: "Fresh oysters baked with spinach, parmesan, and herbs",
     ingredients: ["Fresh Oysters", "Spinach", "Parmesan", "Butter", "Herbs", "Breadcrumbs"],
     extras: [
-      { id: "1", name: "Extra Oysters", price: 10.00 },
-      { id: "2", name: "Lemon Wedges", price: 1.50 },
+      { id: "1", name: "Extra Oysters", price: 72 },
+      { id: "2", name: "Lemon Wedges", price: 15 },
     ],
   },
   {
@@ -36,7 +39,7 @@ export const FOOD_ITEMS: FoodItem[] = [
     sub: "Crisp romaine lettuce with parmesan, croutons, and classic dressing",
     img: "",
     category: "Starters",
-    price: 15.99,
+    price: 95,
     description: "Crisp romaine lettuce with parmesan, croutons, and classic dressing",
     ingredients: ["Romaine Lettuce", "Parmesan", "Croutons", "Caesar Dressing", "Anchovies", "Lemon"],
     optionalIngredients: [
@@ -45,18 +48,17 @@ export const FOOD_ITEMS: FoodItem[] = [
       { id: "extra-parmesan", name: "Extra parmesan", defaultIncluded: false },
     ],
     extras: [
-      { id: "1", name: "Grilled Chicken", price: 6.00 },
-      { id: "2", name: "Extra Parmesan", price: 2.50 },
+      { id: "1", name: "Grilled Chicken", price: 55 },
+      { id: "2", name: "Extra Parmesan", price: 25 },
     ],
   },
-  // Mains (3 items)
   {
     id: "4",
     title: "Wagyu Beef Steak",
     sub: "A5 Japanese Wagyu ribeye with roasted vegetables and red wine jus",
     img: "",
     category: "Mains",
-    price: 75.99,
+    price: 680,
     description: "A5 Japanese Wagyu ribeye with roasted vegetables and red wine jus",
     ingredients: ["Wagyu Beef", "Roasted Vegetables", "Red Wine Jus", "Herb Butter", "Sea Salt"],
     sideOptions: [
@@ -67,16 +69,16 @@ export const FOOD_ITEMS: FoodItem[] = [
     drinkOptions: [
       { id: "water", name: "Water", price: 0 },
       { id: "juice", name: "House Juice", price: 0 },
-      { id: "wine", name: "Red Wine (glass)", price: 35.00 },
+      { id: "wine", name: "Red Wine (glass)", price: 95 },
     ],
     optionalIngredients: [
       { id: "herb-butter", name: "Herb Butter", defaultIncluded: true },
       { id: "jus", name: "Red Wine Jus", defaultIncluded: true },
     ],
     extras: [
-      { id: "1", name: "Foie Gras Topping", price: 18.00 },
-      { id: "2", name: "Truffle Sauce", price: 12.00 },
-      { id: "3", name: "Lobster Tail", price: 25.00 },
+      { id: "1", name: "Foie Gras Topping", price: 145 },
+      { id: "2", name: "Truffle Sauce", price: 95 },
+      { id: "3", name: "Lobster Tail", price: 185 },
     ],
   },
   {
@@ -85,7 +87,7 @@ export const FOOD_ITEMS: FoodItem[] = [
     sub: "Fresh lobster in creamy sauce with gruyère cheese and herbs",
     img: "",
     category: "Mains",
-    price: 42.99,
+    price: 385,
     description: "Fresh lobster in creamy sauce with gruyère cheese and herbs",
     ingredients: ["Fresh Lobster", "Gruyère Cheese", "Cream", "White Wine", "Herbs", "Breadcrumbs"],
     sideOptions: [
@@ -95,15 +97,15 @@ export const FOOD_ITEMS: FoodItem[] = [
     ],
     drinkOptions: [
       { id: "water", name: "Water", price: 0 },
-      { id: "white-wine", name: "White Wine (glass)", price: 32.00 },
+      { id: "white-wine", name: "White Wine (glass)", price: 85 },
     ],
     optionalIngredients: [
       { id: "breadcrumbs", name: "Breadcrumbs", defaultIncluded: true },
       { id: "extra-cheese", name: "Extra cheese", defaultIncluded: false },
     ],
     extras: [
-      { id: "1", name: "Extra Lobster", price: 22.00 },
-      { id: "2", name: "Side Salad", price: 4.00 },
+      { id: "1", name: "Extra Lobster", price: 195 },
+      { id: "2", name: "Side Salad", price: 45 },
     ],
   },
   {
@@ -112,7 +114,7 @@ export const FOOD_ITEMS: FoodItem[] = [
     sub: "Slow-cooked duck leg with potato gratin and cherry sauce",
     img: "",
     category: "Mains",
-    price: 36.99,
+    price: 285,
     description: "Slow-cooked duck leg with potato gratin and cherry sauce",
     ingredients: ["Duck Leg", "Potato Gratin", "Cherry Sauce", "Thyme", "Garlic", "Duck Fat"],
     sideOptions: [
@@ -123,31 +125,30 @@ export const FOOD_ITEMS: FoodItem[] = [
     drinkOptions: [
       { id: "water", name: "Water", price: 0 },
       { id: "juice", name: "Juice", price: 0 },
-      { id: "wine", name: "Red Wine (glass)", price: 35.00 },
+      { id: "wine", name: "Red Wine (glass)", price: 95 },
     ],
     optionalIngredients: [
       { id: "cherry-sauce", name: "Cherry sauce", defaultIncluded: true },
       { id: "extra-garlic", name: "Extra garlic", defaultIncluded: false },
     ],
     extras: [
-      { id: "1", name: "Extra Duck Leg", price: 18.00 },
-      { id: "2", name: "Green Beans", price: 3.50 },
+      { id: "1", name: "Extra Duck Leg", price: 145 },
+      { id: "2", name: "Green Beans", price: 35 },
     ],
   },
-  // Desserts (3 items)
   {
     id: "7",
     title: "Chocolate Soufflé",
     sub: "Decadent dark chocolate soufflé with vanilla bean ice cream",
     img: "",
     category: "Desserts",
-    price: 18.99,
+    price: 115,
     description: "Decadent dark chocolate soufflé with vanilla bean ice cream",
     ingredients: ["Dark Chocolate", "Eggs", "Sugar", "Vanilla Ice Cream", "Gold Leaf", "Cocoa Powder"],
     extras: [
-      { id: "1", name: "Extra Ice Cream", price: 4.00 },
-      { id: "2", name: "Berry Compote", price: 5.00 },
-      { id: "3", name: "Chocolate Sauce", price: 2.50 },
+      { id: "1", name: "Extra Ice Cream", price: 35 },
+      { id: "2", name: "Berry Compote", price: 42 },
+      { id: "3", name: "Chocolate Sauce", price: 28 },
     ],
   },
   {
@@ -156,12 +157,12 @@ export const FOOD_ITEMS: FoodItem[] = [
     sub: "Classic vanilla custard with caramelized sugar top",
     img: "",
     category: "Desserts",
-    price: 14.99,
+    price: 88,
     description: "Classic vanilla custard with caramelized sugar top",
     ingredients: ["Vanilla Custard", "Sugar", "Egg Yolks", "Cream", "Vanilla Bean"],
     extras: [
-      { id: "1", name: "Fresh Berries", price: 3.50 },
-      { id: "2", name: "Extra Caramel", price: 1.50 },
+      { id: "1", name: "Fresh Berries", price: 35 },
+      { id: "2", name: "Extra Caramel", price: 22 },
     ],
   },
   {
@@ -170,27 +171,26 @@ export const FOOD_ITEMS: FoodItem[] = [
     sub: "Italian coffee-flavored dessert with mascarpone and cocoa",
     img: "",
     category: "Desserts",
-    price: 16.99,
+    price: 98,
     description: "Italian coffee-flavored dessert with mascarpone and cocoa",
     ingredients: ["Mascarpone", "Espresso", "Ladyfingers", "Cocoa Powder", "Sugar", "Eggs"],
     extras: [
-      { id: "1", name: "Extra Espresso Shot", price: 2.50 },
-      { id: "2", name: "Chocolate Shavings", price: 1.50 },
+      { id: "1", name: "Extra Espresso Shot", price: 25 },
+      { id: "2", name: "Chocolate Shavings", price: 18 },
     ],
   },
-  // Drinks (3 items)
   {
     id: "10",
     title: "Wine Selection",
     sub: "Premium wine collection - red, white, and rosé options",
     img: "",
     category: "Drinks",
-    price: 12.99,
+    price: 85,
     description: "Premium wine collection - red, white, and rosé options",
     ingredients: ["Premium Wine", "Aged Grapes"],
     extras: [
-      { id: "1", name: "Wine Flight (3 glasses)", price: 28.00 },
-      { id: "2", name: "Cheese Pairing", price: 15.00 },
+      { id: "1", name: "Wine Flight (3 glasses)", price: 195 },
+      { id: "2", name: "Cheese Pairing", price: 125 },
     ],
   },
   {
@@ -199,12 +199,12 @@ export const FOOD_ITEMS: FoodItem[] = [
     sub: "Handcrafted cocktails with premium spirits and fresh ingredients",
     img: "",
     category: "Drinks",
-    price: 14.99,
+    price: 115,
     description: "Handcrafted cocktails with premium spirits and fresh ingredients",
     ingredients: ["Premium Spirits", "Fresh Citrus", "Herbs", "Bitters", "Ice"],
     extras: [
-      { id: "1", name: "Double Shot", price: 7.00 },
-      { id: "2", name: "Premium Upgrade", price: 10.00 },
+      { id: "1", name: "Double Shot", price: 45 },
+      { id: "2", name: "Premium Upgrade", price: 55 },
     ],
   },
   {
@@ -213,28 +213,27 @@ export const FOOD_ITEMS: FoodItem[] = [
     sub: "Premium coffee selection - espresso, cappuccino, and lattes",
     img: "",
     category: "Drinks",
-    price: 6.99,
+    price: 45,
     description: "Premium coffee selection - espresso, cappuccino, and lattes",
     ingredients: ["Premium Coffee Beans", "Steamed Milk", "Espresso"],
     extras: [
-      { id: "1", name: "Extra Shot", price: 1.50 },
-      { id: "2", name: "Alternative Milk", price: 1.00 },
-      { id: "3", name: "Flavor Syrup", price: 0.75 },
+      { id: "1", name: "Extra Shot", price: 15 },
+      { id: "2", name: "Alternative Milk", price: 12 },
+      { id: "3", name: "Flavor Syrup", price: 10 },
     ],
   },
-  // Sides (3 items)
   {
     id: "13",
     title: "Truffle Fries",
     sub: "Crispy hand-cut fries with truffle oil and parmesan",
     img: "",
     category: "Sides",
-    price: 9.99,
+    price: 78,
     description: "Crispy hand-cut fries with truffle oil and parmesan",
     ingredients: ["Potatoes", "Truffle Oil", "Parmesan", "Sea Salt", "Herbs"],
     extras: [
-      { id: "1", name: "Extra Truffle Oil", price: 3.00 },
-      { id: "2", name: "Garlic Aioli", price: 2.00 },
+      { id: "1", name: "Extra Truffle Oil", price: 35 },
+      { id: "2", name: "Garlic Aioli", price: 28 },
     ],
   },
   {
@@ -243,12 +242,12 @@ export const FOOD_ITEMS: FoodItem[] = [
     sub: "Creamy mashed potatoes with butter and herbs",
     img: "",
     category: "Sides",
-    price: 7.99,
+    price: 58,
     description: "Creamy mashed potatoes with butter and herbs",
     ingredients: ["Potatoes", "Butter", "Cream", "Herbs", "Garlic"],
     extras: [
-      { id: "1", name: "Extra Gravy", price: 2.00 },
-      { id: "2", name: "Bacon Bits", price: 3.00 },
+      { id: "1", name: "Extra Gravy", price: 28 },
+      { id: "2", name: "Bacon Bits", price: 35 },
     ],
   },
   {
@@ -257,12 +256,12 @@ export const FOOD_ITEMS: FoodItem[] = [
     sub: "Fresh seasonal vegetables roasted with herbs and olive oil",
     img: "",
     category: "Sides",
-    price: 8.99,
+    price: 65,
     description: "Fresh seasonal vegetables roasted with herbs and olive oil",
     ingredients: ["Seasonal Vegetables", "Olive Oil", "Herbs", "Garlic", "Lemon"],
     extras: [
-      { id: "1", name: "Extra Vegetables", price: 3.00 },
-      { id: "2", name: "Hollandaise Sauce", price: 2.50 },
+      { id: "1", name: "Extra Vegetables", price: 35 },
+      { id: "2", name: "Hollandaise Sauce", price: 32 },
     ],
   },
 ];

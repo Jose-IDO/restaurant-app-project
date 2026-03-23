@@ -2,7 +2,6 @@ import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 
-// Firebase configuration - Auth + Firestore only (images use Cloudinary - free, no credit card)
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || '',
   authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
@@ -12,20 +11,29 @@ const firebaseConfig = {
   appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || '',
 };
 
-// Initialize Firebase (no Storage - we use Cloudinary for images)
-let app: FirebaseApp;
-let auth: Auth;
-let db: Firestore;
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
+let db: Firestore | null = null;
 
-if (getApps().length === 0) {
-  app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  db = getFirestore(app);
-} else {
-  app = getApps()[0] as FirebaseApp;
-  auth = getAuth(app);
-  db = getFirestore(app);
+const hasValidConfig = firebaseConfig.projectId && firebaseConfig.apiKey;
+
+if (hasValidConfig) {
+  try {
+    if (getApps().length === 0) {
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getFirestore(app);
+    } else {
+      app = getApps()[0] as FirebaseApp;
+      auth = getAuth(app);
+      db = getFirestore(app);
+    }
+  } catch (error) {
+    console.warn('Firebase init failed:', error);
+    app = null;
+    auth = null;
+    db = null;
+  }
 }
 
 export { app, auth, db };
-

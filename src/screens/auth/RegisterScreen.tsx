@@ -1,12 +1,15 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, Pressable, TextInput, Alert } from "react-native";
+import { View, Text, ScrollView, Pressable, TextInput, KeyboardAvoidingView, Platform } from "react-native";
+import { useRoute, RouteProp } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
-import { Screen, TitleLogo, Input, PrimaryButton, NG } from "../../components/ui/noirGold.ui";
+import { Screen, TitleLogo, Input, PasswordInput, PrimaryButton, NG } from "../../components/ui/noirGold.ui";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { setLoading, setUser, setUserProfile, setError } from "../../store/slices/authSlice";
 import { authService, RegisterData as AuthRegisterData } from "../../services/authService";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import ErrorMessage from "../../components/ErrorMessage";
+import { sessionActivityService } from "../../services/sessionActivityService";
+import type { RootStackParamList } from "../../navigation/AppNavigator";
 
 interface RegisterScreenProps {
   navigation?: any;
@@ -29,6 +32,9 @@ export interface RegisterData {
 }
 
 export default function RegisterScreen({ navigation, onRegister, onNavigateToLogin }: RegisterScreenProps) {
+  const route = useRoute<RouteProp<RootStackParamList, "Register">>();
+  const returnTo = route.params?.returnTo;
+
   const [formData, setFormData] = useState<RegisterData>({
     firstName: "",
     lastName: "",
@@ -75,16 +81,21 @@ export default function RegisterScreen({ navigation, onRegister, onNavigateToLog
       };
 
       const user = await authService.register(registerData);
+      await sessionActivityService.recordActivity();
       dispatch(setUser(user));
 
-      // Fetch user profile
       const profile = await authService.getUserProfile(user.uid);
       if (profile) {
         dispatch(setUserProfile(profile));
       }
 
-      // Navigate to main app
-      navigation?.navigate("Main");
+      if (profile?.isAdmin) {
+        navigation?.navigate("AdminMain");
+      } else if (returnTo === "Checkout") {
+        navigation?.navigate("Checkout");
+      } else {
+        navigation?.navigate("Main");
+      }
     } catch (error: any) {
       dispatch(setError(error.message || "Registration failed"));
     } finally {
@@ -99,7 +110,12 @@ export default function RegisterScreen({ navigation, onRegister, onNavigateToLog
 
   return (
     <Screen>
-      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 48 : 0}
+      >
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 48 }} showsVerticalScrollIndicator={false}>
         <Pressable onPress={() => navigation?.goBack()}>
           <View style={{ width: 40, height: 40, justifyContent: "center" }}>
             <Feather name="arrow-left" size={24} color={NG.c.text} />
@@ -124,7 +140,7 @@ export default function RegisterScreen({ navigation, onRegister, onNavigateToLog
               if (onNavigateToLogin) {
                 onNavigateToLogin();
               } else if (navigation) {
-                navigation.navigate("Login");
+                navigation.navigate("Login", returnTo ? { returnTo } : undefined);
               }
             }}
             style={{
@@ -155,6 +171,11 @@ export default function RegisterScreen({ navigation, onRegister, onNavigateToLog
 
         <View style={{ height: 14 }} />
 
+        <Text style={{ color: NG.c.muted, fontSize: 13, marginBottom: 12, lineHeight: 18 }}>
+          <Text style={{ color: NG.c.gold, fontWeight: "800" }}>*</Text> Required: first name, last name, email, and password (min. 6 characters).{"\n"}
+          All other fields are optional, including phone, address, and card details.
+        </Text>
+
         <View style={{ flexDirection: "row", gap: 12 }}>
           <Input
             icon="user"
@@ -180,23 +201,21 @@ export default function RegisterScreen({ navigation, onRegister, onNavigateToLog
           keyboardType="email-address"
           autoCapitalize="none"
         />
-        <Input
-          icon="lock"
+        <PasswordInput
           placeholder="Password *"
           value={formData.password}
           onChangeText={(text) => updateField("password", text)}
-          secureTextEntry
         />
         <Input
           icon="phone"
-          placeholder="Phone"
+          placeholder="Phone (optional)"
           value={formData.phone}
           onChangeText={(text) => updateField("phone", text)}
           keyboardType="phone-pad"
         />
         <Input
           icon="home"
-          placeholder="Street Address"
+          placeholder="Street address (optional)"
           value={formData.street}
           onChangeText={(text) => updateField("street", text)}
         />
@@ -214,7 +233,7 @@ export default function RegisterScreen({ navigation, onRegister, onNavigateToLog
             }}
           >
             <TextInput
-              placeholder="City"
+              placeholder="City (optional)"
               placeholderTextColor={NG.c.muted2}
               style={{ color: NG.c.text, fontWeight: "700" }}
               value={formData.city}
@@ -233,7 +252,7 @@ export default function RegisterScreen({ navigation, onRegister, onNavigateToLog
             }}
           >
             <TextInput
-              placeholder="State"
+              placeholder="Province (optional)"
               placeholderTextColor={NG.c.muted2}
               style={{ color: NG.c.text, fontWeight: "700" }}
               value={formData.state}
@@ -252,7 +271,7 @@ export default function RegisterScreen({ navigation, onRegister, onNavigateToLog
             }}
           >
             <TextInput
-              placeholder="ZIP"
+              placeholder="Postal code (optional)"
               placeholderTextColor={NG.c.muted2}
               style={{ color: NG.c.text, fontWeight: "700" }}
               value={formData.zip}
@@ -262,8 +281,8 @@ export default function RegisterScreen({ navigation, onRegister, onNavigateToLog
           </View>
         </View>
 
-        <Text style={{ color: NG.c.gold, fontWeight: "800", marginTop: 20, marginBottom: 8 }}>Card details (for testing)</Text>
-        <Text style={{ color: NG.c.muted, fontSize: 12, marginBottom: 10 }}>Use fake card for testing, e.g. 4242 4242 4242 4242</Text>
+        <Text style={{ color: NG.c.gold, fontWeight: "800", marginTop: 20, marginBottom: 8 }}>Card details (optional — for testing)</Text>
+        <Text style={{ color: NG.c.muted, fontSize: 12, marginBottom: 10 }}>Optional. Use a test card if you try checkout, e.g. 4242 4242 4242 4242</Text>
         <View style={{ flexDirection: "row", gap: 12 }}>
           <View style={{ flex: 1 }}>
             <TextInput
@@ -322,6 +341,7 @@ export default function RegisterScreen({ navigation, onRegister, onNavigateToLog
         </View>
         {isLoading && <LoadingSpinner message="Creating account..." />}
       </ScrollView>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }

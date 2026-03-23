@@ -7,6 +7,7 @@ const RESTAURANT_INFO_ID = 'restaurant-info';
 
 export const restaurantService = {
   async getRestaurantInfo(): Promise<RestaurantInfo | null> {
+    if (!db) return null;
     try {
       const docRef = doc(db, 'restaurantInfo', RESTAURANT_INFO_ID);
       const docSnap = await getDoc(docRef);
@@ -20,6 +21,7 @@ export const restaurantService = {
   },
 
   async updateRestaurantInfo(updates: Partial<RestaurantInfo>): Promise<void> {
+    if (!db) throw new Error('App not configured.');
     try {
       const docRef = doc(db, 'restaurantInfo', RESTAURANT_INFO_ID);
       const docSnap = await getDoc(docRef);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { View, Text, ScrollView, Pressable, Dimensions } from "react-native";
 import { Screen, Card, NG } from "../../components/ui/noirGold.ui";
+import ScreenHeader from "../../components/ScreenHeader";
 import { orderService } from "../../services/orderService";
 import { Order } from "../../types";
 
@@ -176,9 +177,39 @@ export default function AdminAnalyticsScreen({ navigation }: AdminAnalyticsScree
     </View>
   );
 
+  const rangePicker = (
+    <View style={{ flexDirection: "row", gap: 6 }}>
+      {(["week", "month", "year"] as const).map((range) => (
+        <Pressable key={range} onPress={() => setTimeRange(range)}>
+          <View
+            style={{
+              paddingHorizontal: 10,
+              paddingVertical: 6,
+              borderRadius: 6,
+              backgroundColor: timeRange === range ? NG.c.gold : NG.c.panel2,
+              borderWidth: 1,
+              borderColor: timeRange === range ? "transparent" : NG.c.stroke,
+            }}
+          >
+            <Text
+              style={{
+                color: timeRange === range ? "#151515" : NG.c.text,
+                fontWeight: "800",
+                fontSize: 11,
+              }}
+            >
+              {range.charAt(0).toUpperCase() + range.slice(1)}
+            </Text>
+          </View>
+        </Pressable>
+      ))}
+    </View>
+  );
+
   if (loading) {
     return (
       <Screen>
+        <ScreenHeader title="Analytics" onBack={() => navigation?.navigate("AdminDashboard")} right={rangePicker} />
         <Text style={{ color: NG.c.muted, textAlign: "center", marginTop: 40 }}>Loading analytics...</Text>
       </Screen>
     );
@@ -187,6 +218,7 @@ export default function AdminAnalyticsScreen({ navigation }: AdminAnalyticsScree
   if (error) {
     return (
       <Screen>
+        <ScreenHeader title="Analytics" onBack={() => navigation?.navigate("AdminDashboard")} />
         <Text style={{ color: NG.c.muted, textAlign: "center", marginTop: 40 }}>{error}</Text>
       </Screen>
     );
@@ -194,35 +226,7 @@ export default function AdminAnalyticsScreen({ navigation }: AdminAnalyticsScree
 
   return (
     <Screen>
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-        <Text style={{ color: NG.c.gold, fontWeight: "900", fontSize: 22, marginTop: 4 }}>Analytics</Text>
-        <View style={{ flexDirection: "row", gap: 6 }}>
-          {(["week", "month", "year"] as const).map((range) => (
-            <Pressable key={range} onPress={() => setTimeRange(range)}>
-              <View
-                style={{
-                  paddingHorizontal: 10,
-                  paddingVertical: 6,
-                  borderRadius: 6,
-                  backgroundColor: timeRange === range ? NG.c.gold : NG.c.panel2,
-                  borderWidth: 1,
-                  borderColor: timeRange === range ? "transparent" : NG.c.stroke,
-                }}
-              >
-                <Text
-                  style={{
-                    color: timeRange === range ? "#151515" : NG.c.text,
-                    fontWeight: "800",
-                    fontSize: 11,
-                  }}
-                >
-                  {range.charAt(0).toUpperCase() + range.slice(1)}
-                </Text>
-              </View>
-            </Pressable>
-          ))}
-        </View>
-      </View>
+      <ScreenHeader title="Analytics" onBack={() => navigation?.navigate("AdminDashboard")} right={rangePicker} />
 
       <ScrollView style={{ marginTop: 20 }} showsVerticalScrollIndicator={false}>
         <Card style={{ marginBottom: 20 }}>

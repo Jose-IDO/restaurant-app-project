@@ -1,17 +1,43 @@
-import React, { useMemo } from "react";
-import { View, Text, ScrollView, Pressable } from "react-native";
+import React, { useMemo, useState } from "react";
+import { View, Text, ScrollView, Pressable, Alert } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { Screen, Card, NG, PrimaryButton } from "../../components/ui/noirGold.ui";
+import { Screen, Card, NG, GhostButton } from "../../components/ui/noirGold.ui";
+import ScreenHeader from "../../components/ScreenHeader";
 import { OrderStatus } from "../../types";
-import { useAppSelector } from "../../store/hooks";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { logout as logoutAction } from "../../store/slices/authSlice";
+import { authService } from "../../services/authService";
 
 interface AdminDashboardScreenProps {
   navigation?: any;
 }
 
 export default function AdminDashboardScreen({ navigation }: AdminDashboardScreenProps) {
+  const dispatch = useAppDispatch();
   const { orders } = useAppSelector(state => state.orders);
   const { items: foodItems } = useAppSelector(state => state.food);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleLogout = () => {
+    Alert.alert("Log out", "Sign out and return to the customer app?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Log out",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            setLoggingOut(true);
+            await authService.logout();
+            dispatch(logoutAction());
+          } catch (e: any) {
+            Alert.alert("Error", e?.message || "Could not log out");
+          } finally {
+            setLoggingOut(false);
+          }
+        },
+      },
+    ]);
+  };
 
   const dashboardStats = useMemo(() => {
     const totalOrders = orders.length;
@@ -58,23 +84,24 @@ export default function AdminDashboardScreen({ navigation }: AdminDashboardScree
 
   return (
     <Screen>
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-        <Text style={{ color: NG.c.gold, fontWeight: "900", fontSize: 22, marginTop: 4 }}>
-          Dashboard
-        </Text>
-        <Pressable onPress={() => navigation?.navigate("AdminRestaurantSettings")}>
-          <View style={{
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-            borderRadius: 8,
-            backgroundColor: NG.c.panel2,
-            borderWidth: 1,
-            borderColor: NG.c.stroke,
-          }}>
-            <Feather name="settings" size={18} color={NG.c.gold} />
-          </View>
-        </Pressable>
-      </View>
+      <ScreenHeader
+        title="Dashboard"
+        onBack={handleLogout}
+        right={
+          <Pressable onPress={() => navigation?.navigate("AdminRestaurantSettings")}>
+            <View style={{
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              borderRadius: 8,
+              backgroundColor: NG.c.panel2,
+              borderWidth: 1,
+              borderColor: NG.c.stroke,
+            }}>
+              <Feather name="settings" size={18} color={NG.c.gold} />
+            </View>
+          </Pressable>
+        }
+      />
 
       <ScrollView style={{ marginTop: 20 }} showsVerticalScrollIndicator={false}>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
@@ -90,9 +117,9 @@ export default function AdminDashboardScreen({ navigation }: AdminDashboardScree
 
           <Card style={{ flex: 1, minWidth: "45%" }}>
             <View style={{ alignItems: "center" }}>
-              <Feather name="tag" size={32} color={NG.c.gold} />
-              <Text style={{ color: NG.c.text, fontWeight: "900", fontSize: 20, marginTop: 10 }}>
-                R{dashboardStats.totalRevenue.toLocaleString()}
+              <Text style={{ color: NG.c.gold, fontWeight: "900", fontSize: 32, lineHeight: 36 }}>R</Text>
+              <Text style={{ color: NG.c.text, fontWeight: "900", fontSize: 20, marginTop: 6 }}>
+                {dashboardStats.totalRevenue.toLocaleString()}
               </Text>
               <Text style={{ color: NG.c.muted, marginTop: 5, fontSize: 12 }}>Revenue</Text>
             </View>
@@ -211,7 +238,7 @@ export default function AdminDashboardScreen({ navigation }: AdminDashboardScree
           ))}
         </Card>
 
-        <View style={{ flexDirection: "row", gap: 12, marginBottom: 20 }}>
+        <View style={{ flexDirection: "row", gap: 12, marginBottom: 16 }}>
           <Pressable style={{ flex: 1 }} onPress={() => navigation?.navigate("AdminFood")}>
             <Card style={{ alignItems: "center", paddingVertical: 16 }}>
               <Feather name="coffee" size={24} color={NG.c.gold} />
@@ -228,6 +255,13 @@ export default function AdminDashboardScreen({ navigation }: AdminDashboardScree
               </Text>
             </Card>
           </Pressable>
+        </View>
+
+        <View style={{ marginBottom: 28 }}>
+          <GhostButton
+            label={loggingOut ? "Logging out..." : "Log out"}
+            onPress={handleLogout}
+          />
         </View>
       </ScrollView>
     </Screen>
